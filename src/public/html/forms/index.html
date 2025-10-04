@@ -27,6 +27,15 @@
 </head>
 <body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
   <div class="bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-md">
+    
+    <!-- Botão Voltar -->
+    <div class="mb-6 text-left">
+      <button id="backToHome" 
+              class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition-colors">
+        ← Voltar
+      </button>
+    </div>
+
     <h1 class="text-3xl font-bold mb-6 text-center">Space Expedition Form</h1>
     
     <form id="expeditionForm" class="space-y-4">
@@ -89,6 +98,7 @@
     const expeditionForm = document.getElementById('expeditionForm');
     const durationSlider = document.getElementById('mission-duration');
     const durationValue = document.getElementById('mission-duration-value');
+    const backToHome = document.getElementById('backToHome');
 
     // Show or hide planet select
     destinationType.addEventListener('change', () => {
@@ -104,9 +114,15 @@
       durationValue.textContent = event.target.value;
     });
 
+    // Submit form
     expeditionForm.addEventListener('submit', (e) => {
       e.preventDefault();
       window.location.href = 'confirmation-page.html';
+    });
+
+    // Back to home button
+    backToHome.addEventListener('click', () => {
+      window.location.href = '../home/home.html';
     });
   </script>
 </body>
