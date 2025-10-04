@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expedição Espacial</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
+  <div class="bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-md">
+    <h1 class="text-3xl font-bold mb-6 text-center">Formulário de Expedição</h1>
+    
+    <form id="expeditionForm" class="space-y-4">
+      <!-- Quantidade de passageiros -->
+      <div>
+        <label class="block mb-1 font-medium">Quantidade de passageiros:</label>
+        <input type="number" name="passengers" min="1" required 
+               class="w-full px-3 py-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      </div>
+
+      <!-- Tipo: Espaço ou Planeta -->
+      <div>
+        <label class="block mb-1 font-medium">Destino:</label>
+        <select id="destinationType" name="destinationType" required
+                class="w-full px-3 py-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <option value="" disabled selected>Escolha uma opção</option>
+          <option value="space">Espaço</option>
+          <option value="planet">Planeta</option>
+        </select>
+      </div>
+
+      <!-- Select de planetas (inicialmente escondido) -->
+      <div id="planetSelectContainer" class="hidden">
+        <label class="block mb-1 font-medium">Escolha o planeta:</label>
+        <select id="planetSelect" name="planet"
+                class="w-full px-3 py-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <option value="" disabled selected>Selecione um planeta</option>
+          <option value="Mercúrio">Mercúrio</option>
+          <option value="Vênus">Vênus</option>
+          <option value="Terra">Terra</option>
+          <option value="Marte">Marte</option>
+          <option value="Júpiter">Júpiter</option>
+          <option value="Saturno">Saturno</option>
+          <option value="Urano">Urano</option>
+          <option value="Netuno">Netuno</option>
+        </select>
+      </div>
+
+      <!-- Botão enviar -->
+      <button type="submit"
+              class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded transition-colors">
+        Enviar Informações
+      </button>
+    </form>
+  </div>
+
+  <script>
+    const destinationType = document.getElementById('destinationType');
+    const planetSelectContainer = document.getElementById('planetSelectContainer');
+    const expeditionForm = document.getElementById('expeditionForm');
+
+    // Mostra ou esconde select de planetas
+    destinationType.addEventListener('change', () => {
+      if (destinationType.value === 'planet') {
+        planetSelectContainer.classList.remove('hidden');
+      } else {
+        planetSelectContainer.classList.add('hidden');
+      }
+    });
+
+    expeditionForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      window.location.href = 'pagina-confirmacao.html';
+    });
+  </script>
+</body>
+</html>

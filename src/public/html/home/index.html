@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="../../img/image.png">
+  <title>Space Habitat - Home</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: url('../../img/backgroundInit.gif') no-repeat center center fixed;
+      background-size: cover;
+    }
+    /* Fundo translúcido pros cards ficarem legíveis */
+    .card {
+      background-color: rgba(31, 41, 55, 0.85); /* equivalente a bg-gray-800 com opacidade */
+      backdrop-filter: blur(4px);
+    }
+  </style>
+</head>
+<body class="text-white flex items-center justify-center h-screen">
+  <div class="max-w-3xl w-full px-6">
+    <h1 class="text-6xl font-extrabold text-white text-center mb-12 drop-shadow-2xl tracking-wide">
+        <span class="uppercase">Welcome to Space Habitat</span>
+    </h1>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+      <a href="../forms/index.html" class="block card p-6 rounded-2xl shadow-lg hover:bg-indigo-600 transition duration-300">
+        <h2 class="text-xl font-semibold mb-2">Start your journey here</h2>
+        <p class="text-gray-200 text-sm">Provide information about your space crew, such as the number of members, the duration of the expedition, and its location.</p>
+      </a>
+      
+      <a href="designer.html" class="block card p-6 rounded-2xl shadow-lg hover:bg-indigo-600 transition duration-300">
+        <h2 class="text-xl font-semibold mb-2">Building in space...</h2>
+        <p class="text-gray-200 text-sm">Discover how different environments in the solar system influence the creation of habitats. Explore the impacts of gravity, density, and temperature to design dwellings adapted to space.</p>
+      </a>
+    </div>
+  </div>
+</body>
+</html>
