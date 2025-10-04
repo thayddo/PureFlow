@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Habitat Designer - Mission Briefing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* bg-gray-900 */
+            background-image:
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+                radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px),
+                radial-gradient(rgba(255,255,255,.4), rgba(255,255,255,.1) 2px, transparent 30px);
+            background-size: 550px 550px, 350px 350px, 250px 250px, 150px 150px;
+            background-position: 0 0, 40px 60px, 130px 270px, 70px 100px;
+        }
+        .form-container {
+            background-color: rgba(17, 24, 39, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(55, 65, 81, 0.5);
+        }
+        /* Slider Thumb Styling */
+        .slider-thumb::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #4f46e5;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        .slider-thumb::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #4f46e5;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body class="text-white">
+
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="form-container w-full max-w-md p-8 space-y-8 rounded-xl shadow-2xl">
+            
+            <div class="text-center">
+                <h1 class="text-3xl font-bold text-indigo-400">Mission Briefing</h1>
+                <p class="text-gray-400 mt-2">Define the core parameters before designing your habitat.</p>
+            </div>
+
+            <form id="mission-form" class="space-y-8">
+                <div>
+                    <div class="flex items-center justify-between">
+                        <label for="crew-size" class="text-sm font-medium text-gray-300">Crew Size:</label>
+                        <span id="crew-size-value" class="font-mono text-indigo-400">4</span>
+                    </div>
+                    <input type="range" id="crew-size" name="crewSize" min="1" max="12" value="4" required
+                           class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb mt-2">
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between">
+                        <label for="mission-duration" class="text-sm font-medium text-gray-300">Mission Duration (days):</label>
+                        <span id="mission-duration-value" class="font-mono text-indigo-400">365</span>
+                    </div>
+                    <input type="range" id="mission-duration" name="duration" min="30" max="1000" value="365" step="5" required
+                           class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb mt-2">
+                </div>
+
+                <div>
+                    <label for="mission-environment" class="block text-sm font-medium text-gray-300 mb-2">Mission Destination</label>
+                    <select id="mission-environment" name="environment" required
+                            class="w-full bg-gray-700 border border-gray-600 rounded-md p-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="orbit" selected>Low Earth Orbit / Transit</option>
+                        <option value="surface">The Moon</option>
+                        <option value="surface">Mars</option>
+                    </select>
+                </div>
+
+                <div>
+                    <button type="submit" class="w-full p-3 mt-4 bg-indigo-600 rounded-md font-semibold hover:bg-indigo-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500">
+                        Proceed to Habitat Designer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const crewSizeSlider = document.getElementById('crew-size');
+        const crewSizeValue = document.getElementById('crew-size-value');
+        const durationSlider = document.getElementById('mission-duration');
+        const durationValue = document.getElementById('mission-duration-value');
+
+        // Update display value on slider input
+        crewSizeSlider.addEventListener('input', (event) => {
+            crewSizeValue.textContent = event.target.value;
+        });
+        durationSlider.addEventListener('input', (event) => {
+            durationValue.textContent = event.target.value;
+        });
+
+        // Handle form submission
+        document.getElementById('mission-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // Get form values
+            const missionData = {
+                crewSize: crewSizeSlider.value,
+                duration: durationSlider.value,
+                environment: document.getElementById('mission-environment').value
+            };
+
+            // Save to localStorage
+            localStorage.setItem('missionParams', JSON.stringify(missionData));
+
+            // Redirect to the main designer page
+            window.location.href = 'designer.html';
+        });
+    </script>
+
+</body>
+</html>

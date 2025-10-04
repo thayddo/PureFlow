@@ -76,17 +76,14 @@
         <p class="text-xl">Initializing Habitat Simulation...</p>
     </div>
 
-    <!-- Main Container -->
     <div id="app-container" class="flex h-screen w-screen opacity-0 transition-opacity duration-500">
         
-        <!-- Left Panel: Controls -->
         <div class="w-1/4 max-w-sm h-full bg-gray-800 p-4 shadow-lg overflow-y-auto flex flex-col space-y-6">
             <div>
                 <h1 class="text-2xl font-bold text-indigo-400">Habitat Designer</h1>
                 <p class="text-sm text-gray-400">Configure your mission and habitat layout.</p>
             </div>
             
-            <!-- Mission Environment -->
             <div class="space-y-4 bg-gray-900 p-4 rounded-lg">
                 <h2 class="font-semibold text-lg border-b border-gray-700 pb-2">Mission Environment</h2>
                 <div class="flex justify-around">
@@ -101,7 +98,6 @@
                 </div>
             </div>
             
-            <!-- Design Mode -->
             <div class="space-y-4 bg-gray-900 p-4 rounded-lg">
                 <h2 class="font-semibold text-lg border-b border-gray-700 pb-2">Design Mode</h2>
                 <div class="flex justify-around">
@@ -117,7 +113,6 @@
                  <p class="text-xs text-gray-400 mt-2">Layout: Place modules inside. Build: Move entire levels.</p>
             </div>
 
-            <!-- Mission Parameters -->
             <div class="space-y-4 bg-gray-900 p-4 rounded-lg">
                 <h2 class="font-semibold text-lg border-b border-gray-700 pb-2">Mission Parameters</h2>
                 <div class="flex items-center justify-between">
@@ -133,7 +128,6 @@
                 <input id="mission-duration" type="range" min="30" max="1000" value="365" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb">
             </div>
             
-            <!-- Habitat Levels -->
             <div class="space-y-4 bg-gray-900 p-4 rounded-lg">
                 <h2 class="font-semibold text-lg border-b border-gray-700 pb-2">Habitat Levels</h2>
                 <div id="level-selector" class="flex flex-wrap justify-center gap-2">
@@ -145,49 +139,40 @@
                 </div>
             </div>
 
-            <!-- Habitat Shell Configuration -->
             <div class="space-y-4 bg-gray-900 p-4 rounded-lg">
                 <h2 class="font-semibold text-lg border-b border-gray-700 pb-2">Habitat Shell (Active Level)</h2>
                 <div>
                     <label for="habitat-shape" class="text-sm">Shape:</label>
                     <select id="habitat-shape" class="w-full mt-1 bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <!-- Options will be populated by JS -->
-                    </select>
+                        </select>
                 </div>
                 <div id="dimension-controls" class="space-y-4">
-                    <!-- Dynamic dimension controls will be inserted here -->
-                </div>
+                    </div>
             </div>
 
-            <!-- Functional Areas -->
             <div class="space-y-3 bg-gray-900 p-4 rounded-lg flex-grow">
                  <div class="flex justify-between items-center border-b border-gray-700 pb-2">
                     <h2 class="font-semibold text-lg">Functional Areas</h2>
                     <button id="clear-modules-btn" class="text-xs bg-red-600 hover:bg-red-700 px-2 py-1 rounded">Clear Modules</button>
                  </div>
-                 <div id="module-palette" class="grid grid-cols-2 gap-2">
-                    <!-- Module buttons will be added here -->
-                 </div>
+                 <div id="module-palette" class="grid grid-cols-2 gap-2 pt-2">
+                    </div>
             </div>
         </div>
 
-        <!-- Center Panel: 3D Canvas -->
         <div id="canvas-container" class="flex-grow h-full relative">
-            <!-- Canvas will be inserted here -->
             <div class="absolute top-2 left-2 bg-gray-800 bg-opacity-70 p-2 rounded-md text-xs">
                 <p>Controls: Left Click + Drag to Rotate | Right Click + Drag to Pan | Scroll to Zoom</p>
                 <p>W: Move | S: Scale | E: Rotate | Q: Delete | ESC: Deselect | Build Mode: Click shell to move it</p>
             </div>
         </div>
 
-        <!-- Right Panel: Information & Feedback -->
         <div class="w-1/4 max-w-sm h-full bg-gray-800 p-4 shadow-lg overflow-y-auto flex flex-col space-y-6">
             <div>
                 <h2 class="text-xl font-bold text-indigo-400">System Analysis</h2>
                 <p class="text-sm text-gray-400">Real-time design feedback.</p>
             </div>
 
-            <!-- Habitat Stats -->
             <div class="bg-gray-900 p-4 rounded-lg">
                 <h3 class="font-semibold text-lg border-b border-gray-700 pb-2">Habitat Totals</h3>
                 <div class="text-sm space-y-2 mt-2">
@@ -197,7 +182,6 @@
                 </div>
             </div>
             
-            <!-- Oxygen Analysis -->
             <div id="oxygen-analysis" class="bg-gray-900 p-4 rounded-lg">
                 <h3 class="font-semibold text-lg border-b border-gray-700 pb-2 text-blue-400">Oxygen Analysis</h3>
                 <div class="text-sm space-y-2 mt-2">
@@ -206,7 +190,6 @@
                 </div>
             </div>
 
-            <!-- Engineering Rationale -->
             <div id="engineering-rationale" class="bg-gray-900 p-4 rounded-lg hidden">
                 <h3 class="font-semibold text-lg border-b border-gray-700 pb-2 text-green-400">Engineering Rationale</h3>
                 <div class="text-sm space-y-2 mt-2">
@@ -215,7 +198,6 @@
                 </div>
             </div>
 
-            <!-- Selected Module Info -->
             <div id="selected-module-info" class="bg-gray-900 p-4 rounded-lg hidden">
                 <h3 class="font-semibold text-lg border-b border-gray-700 pb-2">Selected: <span id="selected-module-name"></span></h3>
                 <div class="text-sm space-y-2 mt-2">
@@ -225,16 +207,13 @@
                 </div>
             </div>
 
-            <!-- Mission Checklist -->
             <div id="mission-checklist" class="bg-gray-900 p-4 rounded-lg">
                 <h3 class="font-semibold text-lg border-b border-gray-700 pb-2 text-cyan-400">Readiness Checklist</h3>
                 <ul id="checklist-list" class="text-sm space-y-2 mt-2">
-                    <!-- Checklist items will be populated by JS -->
-                </ul>
+                    </ul>
             </div>
             
-             <!-- Alerts -->
-            <div class="bg-gray-900 p-4 rounded-lg flex-grow">
+             <div class="bg-gray-900 p-4 rounded-lg flex-grow">
                 <h3 class="font-semibold text-lg border-b border-gray-700 pb-2 text-yellow-400">Alerts & Warnings</h3>
                 <ul id="alerts-list" class="text-sm space-y-2 mt-2 list-disc list-inside">
                     <li class="text-gray-500">No alerts at this time.</li>
@@ -262,6 +241,22 @@
             'Laboratory': { color: 0x059669, volumePerCrew: 12, adjacencyWarning: [] },
             'Greenhouse': { color: 0x16a34a, volumePerCrew: 8, adjacencyWarning: ['Waste Management'] },
             'Airlock': { color: 0x9ca3af, volumePerCrew: 2, adjacencyWarning: [] },
+        };
+
+        const MODULE_ICONS = {
+            'Quarters': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" /></svg>`,
+            'Hygiene': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-12v4m-2-2h4m6 4v4m-2-2h4M6 21a2 2 0 002-2h8a2 2 0 002-2V7a2 2 0 00-2-2h-4M6 21V7a2 2 0 012-2h4" /></svg>`,
+            'Galley': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7.014A8.003 8.003 0 0112 2a8.003 8.003 0 016.014 2.986C20.5 5 21 8 21 10c2 1 2.657 1.343 2.657 2.657a8 8 0 01-1.343 5.657z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>`,
+            'Exercise': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>`,
+            'Recreation': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
+            'Storage': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4M4 7s0 0 0 0m16 0s0 0 0 0M12 11a4 4 0 100-8 4 4 0 000 8z" /></svg>`,
+            'Workshop': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>`,
+            'ECLSS': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M5 5a7 7 0 0110.606.394M20 20v-5h-5m-1-1a7 7 0 01-10.606-.394" /></svg>`,
+            'Waste Management': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`,
+            'Laboratory': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547a2 2 0 00-.547 1.806l.477 2.387a6 6 0 00.517 3.86l.158.318a6 6 0 003.86.517l2.387.477a2 2 0 001.806-.547a2 2 0 00.547-1.806l-.477-2.387a6 6 0 00-.517-3.86l-.158-.318z" /><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 10.25l1.5 1.5m0 0l-1.5 1.5m1.5-1.5h-3m-6 0l-1.5-1.5m0 0l1.5-1.5m-1.5 1.5h3" /></svg>`,
+            'Greenhouse': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.121 15.879A3 3 0 0112.025 18a3 3 0 01-2.096-2.121m0 0A3 3 0 0012.025 12a3 3 0 002.096-2.121m-4.192 0A3 3 0 0112.025 6a3 3 0 012.096 2.121m0 0A3 3 0 0016.12 12a3 3 0 00-2.096 2.121" /></svg>`,
+            'Airlock': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>`,
+            'default': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>`
         };
         
         const HABITAT_SHAPES = {
@@ -472,10 +467,23 @@
             Object.keys(MODULE_TYPES).forEach(name => {
                 const config = MODULE_TYPES[name];
                 const button = document.createElement('button');
-                button.textContent = name;
+                
+                const iconSVG = MODULE_ICONS[name] || MODULE_ICONS['default'];
+                const hexColor = `#${new THREE.Color(config.color).getHexString()}`;
+
                 button.title = `${name} - Vol/Crew: ${config.volumePerCrew} m³`;
-                button.className = 'w-full text-sm p-2 rounded-md transition-all duration-200 hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-400';
-                button.style.backgroundColor = `#${new THREE.Color(config.color).getHexString()}`;
+                button.className = 'flex flex-col items-center justify-center p-2 bg-gray-700 rounded-lg text-xs font-medium text-gray-200 transition-all duration-200 transform hover:scale-105 hover:shadow-lg border-2 border-transparent';
+                
+                // Usamos uma variável CSS para a cor da borda no hover
+                button.style.setProperty('--module-color', hexColor);
+                button.onmouseenter = () => button.style.borderColor = button.style.getPropertyValue('--module-color');
+                button.onmouseleave = () => button.style.borderColor = 'transparent';
+
+                button.innerHTML = `
+                    ${iconSVG}
+                    <span>${name}</span>
+                `;
+
                 button.onclick = () => addFunctionalModule(name, config);
                 modulePalette.appendChild(button);
             });
@@ -837,4 +845,3 @@
     </script>
 </body>
 </html>
-
