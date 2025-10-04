@@ -3,53 +3,82 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Expedição Espacial</title>
+  <title>Space Expedition</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Slider styling only */
+    .slider-thumb::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      background: #4f46e5;
+      cursor: pointer;
+      border-radius: 50%;
+    }
+    .slider-thumb::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      background: #4f46e5;
+      cursor: pointer;
+      border-radius: 50%;
+    }
+  </style>
 </head>
 <body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
   <div class="bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-md">
-    <h1 class="text-3xl font-bold mb-6 text-center">Formulário de Expedição</h1>
+    <h1 class="text-3xl font-bold mb-6 text-center">Space Expedition Form</h1>
     
     <form id="expeditionForm" class="space-y-4">
-      <!-- Quantidade de passageiros -->
+      <!-- Number of passengers -->
       <div>
-        <label class="block mb-1 font-medium">Quantidade de passageiros:</label>
+        <label class="block mb-1 font-medium">Number of Passengers:</label>
         <input type="number" name="passengers" min="1" required 
                class="w-full px-3 py-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
       </div>
 
-      <!-- Tipo: Espaço ou Planeta -->
+      <!-- Mission Duration (new section) -->
       <div>
-        <label class="block mb-1 font-medium">Destino:</label>
+        <div class="flex items-center justify-between">
+          <label for="mission-duration" class="block mb-1 font-medium">Mission Duration (days):</label>
+          <span id="mission-duration-value" class="font-mono text-indigo-400">365</span>
+        </div>
+        <input type="range" id="mission-duration" name="duration" min="30" max="1000" value="365" step="5" required
+               class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb mt-2">
+      </div>
+
+      <!-- Type: Space or Planet -->
+      <div>
+        <label class="block mb-1 font-medium">Destination:</label>
         <select id="destinationType" name="destinationType" required
                 class="w-full px-3 py-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <option value="" disabled selected>Escolha uma opção</option>
-          <option value="space">Espaço</option>
-          <option value="planet">Planeta</option>
+          <option value="" disabled selected>Choose an option</option>
+          <option value="space">Space</option>
+          <option value="planet">Planet</option>
         </select>
       </div>
 
-      <!-- Select de planetas (inicialmente escondido) -->
+      <!-- Planet select (initially hidden) -->
       <div id="planetSelectContainer" class="hidden">
-        <label class="block mb-1 font-medium">Escolha o planeta:</label>
+        <label class="block mb-1 font-medium">Choose a planet:</label>
         <select id="planetSelect" name="planet"
                 class="w-full px-3 py-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <option value="" disabled selected>Selecione um planeta</option>
-          <option value="Mercúrio">Mercúrio</option>
-          <option value="Vênus">Vênus</option>
-          <option value="Terra">Terra</option>
-          <option value="Marte">Marte</option>
-          <option value="Júpiter">Júpiter</option>
-          <option value="Saturno">Saturno</option>
-          <option value="Urano">Urano</option>
-          <option value="Netuno">Netuno</option>
+          <option value="" disabled selected>Select a planet</option>
+          <option value="Mercury">Mercury</option>
+          <option value="Venus">Venus</option>
+          <option value="Earth">Earth</option>
+          <option value="Mars">Mars</option>
+          <option value="Jupiter">Jupiter</option>
+          <option value="Saturn">Saturn</option>
+          <option value="Uranus">Uranus</option>
+          <option value="Neptune">Neptune</option>
         </select>
       </div>
 
-      <!-- Botão enviar -->
+      <!-- Submit button -->
       <button type="submit"
               class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded transition-colors">
-        Enviar Informações
+        Submit Information
       </button>
     </form>
   </div>
@@ -58,8 +87,10 @@
     const destinationType = document.getElementById('destinationType');
     const planetSelectContainer = document.getElementById('planetSelectContainer');
     const expeditionForm = document.getElementById('expeditionForm');
+    const durationSlider = document.getElementById('mission-duration');
+    const durationValue = document.getElementById('mission-duration-value');
 
-    // Mostra ou esconde select de planetas
+    // Show or hide planet select
     destinationType.addEventListener('change', () => {
       if (destinationType.value === 'planet') {
         planetSelectContainer.classList.remove('hidden');
@@ -68,9 +99,14 @@
       }
     });
 
+    // Update display value on slider input
+    durationSlider.addEventListener('input', (event) => {
+      durationValue.textContent = event.target.value;
+    });
+
     expeditionForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      window.location.href = 'pagina-confirmacao.html';
+      window.location.href = 'confirmation-page.html';
     });
   </script>
 </body>
