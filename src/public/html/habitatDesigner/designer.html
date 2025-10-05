@@ -6,6 +6,8 @@
     <title>Space Habitat Designer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Favicon -->
+    <link rel="icon" href="../../img/favicon.ico" type="image/x-icon">
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
     <script type="importmap">
     {
@@ -205,20 +207,35 @@
              </div>
              <!-- View Toggle Buttons -->
             <div class="absolute bottom-4 right-4 flex flex-col gap-2">
-                <button id="view-toggle-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-transform transform hover:scale-105">
-                    2D View
+                <div id="view-dropdown" class="relative">
+                    <button id="view-mode-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-transform transform hover:scale-105 w-full flex justify-between items-center">
+                        <span>3D View</span>
+                        <svg class="w-4 h-4 ml-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="view-options" class="hidden absolute bottom-full mb-2 w-full bg-gray-700 rounded-lg shadow-xl z-20 overflow-hidden">
+                        <a href="#" class="block px-4 py-2 text-sm text-white hover:bg-indigo-500" data-view="3d">3D View</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-white hover:bg-indigo-500" data-view="2d">2D View</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-white hover:bg-indigo-500" data-view="realistic">Realistic View</a>
+                    </div>
+                </div>
+                <button id="reset-camera-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-transform transform hover:scale-105">
+                     Reset View
                 </button>
-                 <button id="reset-camera-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-transform transform hover:scale-105">
-                      Reset Camera
-                 </button>
             </div>
         </div>
 
         <!-- Right Analysis Panel -->
         <div class="w-1/4 max-w-sm h-full bg-gray-800 p-4 shadow-lg overflow-y-auto flex flex-col space-y-6">
-            <div>
-                <h2 class="text-xl font-bold text-indigo-400">System Analysis</h2>
-                <p class="text-sm text-gray-400">Real-time design feedback.</p>
+            <div class="flex justify-between items-start">
+                <div>
+                    <h2 class="text-xl font-bold text-indigo-400">System Analysis</h2>
+                    <p class="text-sm text-gray-400">Real-time design feedback.</p>
+                </div>
+                <button id="summary-btn" title="Abrir resumo técnico" class="p-2 bg-gray-700 hover:bg-indigo-600 rounded-full transition-colors flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </button>
             </div>
 
             <div class="bg-gray-900 p-4 rounded-lg">
@@ -309,8 +326,22 @@
         };
         
         const HABITAT_SHAPES = {
-            orbit: { 'Cylindrical Module': 'cylinder', 'Inflatable Module': 'inflatable', 'Rotational Station (Torus)': 'torus' },
-            surface: { 'Cylindrical Module': 'cylinder', 'Inflatable Module': 'inflatable', 'Planetary Base (Dome)': 'dome', 'Connector Module': 'connector' }
+            orbit: { 
+                'Cylindrical Module': 'cylinder', 
+                'Inflatable Module': 'inflatable', 
+                'Rotational Station (Torus)': 'torus',
+                'Spindle Module': 'spindle',
+                'Hexagonal Prism': 'hexagon',
+                'Truss Structure': 'truss',
+            },
+            surface: { 
+                'Cylindrical Module': 'cylinder', 
+                'Inflatable Module': 'inflatable', 
+                'Planetary Base (Dome)': 'dome', 
+                'Connector Module': 'connector',
+                'Hexagonal Prism': 'hexagon',
+                'Saucer Base': 'saucer',
+            }
         };
 
         const SHAPE_RATIONALES = {
@@ -318,7 +349,11 @@
             'inflatable': 'Provides a massive pressurized volume for a very small launch mass and size. The flexible fabric becomes rigid when inflated, ideal for large living areas on long missions.',
             'torus': 'Designed to generate artificial gravity through rotation (centripetal force). This is crucial for mitigating the long-term negative health effects of microgravity on the crew.',
             'dome': 'Geodesic domes are incredibly strong for their weight, distributing stress efficiently. They are ideal for planetary surfaces, resisting gravity and atmospheric pressure while providing a large, open interior space.',
-            'connector': 'While less efficient for pressure, its rectangular shape is perfect for modularity. It allows for the easy connection between other modules to build complex surface bases with defined interior spaces.'
+            'connector': 'While less efficient for pressure, its rectangular shape is perfect for modularity. It allows for the easy connection between other modules to build complex surface bases with defined interior spaces.',
+            'hexagon': 'Structurally efficient and ideal for tessellation, allowing multiple modules to connect seamlessly with no wasted space, forming larger, integrated complexes.',
+            'spindle': 'An elongated, often cylindrical or tapered shape optimized for in-space transit, potentially housing propulsion systems, fuel, or long corridors connecting habitat sections.',
+            'truss': 'A non-pressurized backbone structure, essential for mounting large components like solar arrays, radiators, and external modules on large space stations. Provides structural integrity over long distances.',
+            'saucer': 'Offers a large, continuous floor area for a given height, making it very stable on planetary surfaces. Its shape is efficient for resisting atmospheric pressure if present.'
         };
 
         const ESSENTIAL_MODULES = ['Crew Quarters', 'Hygiene', 'Galley', 'ECLSS', 'Recreation', 'Storage'];
@@ -355,7 +390,6 @@
         const rationaleShapeEl = document.getElementById('rationale-shape');
         const rationaleTextEl = document.getElementById('rationale-text');
         const buildModeHelp = document.getElementById('build-mode-help');
-        const viewToggleBtn = document.getElementById('view-toggle-btn');
         const resetCameraBtn = document.getElementById('reset-camera-btn');
 
         // --- State ---
@@ -371,7 +405,7 @@
             designMode: 'layout', 
             linkMode: false, 
             firstLinkLevel: null,
-            is2DView: false,
+            currentView: '3d',
             removalMode: false,
         };
 
@@ -624,6 +658,13 @@
             event.preventDefault();
             if (designState.designMode !== 'layout') return;
 
+            const activeLevelConfig = levelConfigs.find(c => c.id === designState.activeLevelId);
+            if (activeLevelConfig.shape === 'truss') {
+                 updateAlertsUI(new Set(['Modules cannot be placed inside a Truss structure.']));
+                 setTimeout(() => runAnalysis(), 3000);
+                 return;
+            }
+
             const moduleName = event.dataTransfer.getData("text/plain");
             const config = MODULE_TYPES[moduleName];
             if (!config) return;
@@ -632,7 +673,6 @@
             pointer.y = - (event.offsetY / renderer.domElement.clientHeight) * 2 + 1;
             raycaster.setFromCamera(pointer, activeCamera);
 
-            const activeLevelConfig = levelConfigs.find(c => c.id === designState.activeLevelId);
             const activeLevelGroup = activeLevelConfig?.group;
             if (!activeLevelGroup) return;
 
@@ -649,7 +689,8 @@
         }
         
         function setupUI() {
-            document.getElementById('back-btn').addEventListener('click', () => { window.history.back(); });
+            document.getElementById('back-btn').addEventListener('click', () => { window.location.href = 'home.html'; });
+            document.getElementById('summary-btn').addEventListener('click', () => { window.location.href = 'resumo_tecnico.html'; });
             document.querySelectorAll('input[name="environment"]').forEach(radio => radio.addEventListener('change', (e) => { missionParams.environment = e.target.value; updateHabitatShapeOptions(); updateSceneEnvironment(); createHabitatShells(); }));
             document.querySelectorAll('input[name="design-mode"]').forEach(radio => radio.addEventListener('change', (e) => { 
                 designState.designMode = e.target.value; 
@@ -698,6 +739,12 @@
 
                     const activeLevelGroup = levelConfigs.find(c => c.id === designState.activeLevelId)?.group;
                     if (!activeLevelGroup) return;
+
+                    if (activeLevelGroup.userData.shape === 'truss') {
+                         updateAlertsUI(new Set(['Modules cannot be placed inside a Truss structure.']));
+                         setTimeout(() => runAnalysis(), 3000);
+                         return;
+                    }
                     
                     const centerPosition = new THREE.Vector3();
                     activeLevelGroup.getWorldPosition(centerPosition);
@@ -708,7 +755,26 @@
                 modulePalette.appendChild(button);
             });
 
-            viewToggleBtn.addEventListener('click', toggleView);
+            const viewModeBtn = document.getElementById('view-mode-btn');
+            const viewOptions = document.getElementById('view-options');
+            viewModeBtn.addEventListener('click', () => {
+                viewOptions.classList.toggle('hidden');
+            });
+            document.body.addEventListener('click', (e) => {
+                if (!viewModeBtn.contains(e.target)) {
+                    viewOptions.classList.add('hidden');
+                }
+            });
+
+            document.querySelectorAll('#view-options a').forEach(option => {
+                option.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const viewMode = e.currentTarget.dataset.view;
+                    setViewMode(viewMode);
+                    viewOptions.classList.add('hidden');
+                });
+            });
+
             resetCameraBtn.addEventListener('click', resetCamera);
             habitatShapeSelect.addEventListener('change', e => { levelConfigs.find(c => c.id === designState.activeLevelId).shape = e.target.value; createHabitatShells(); updateLevelSelectorVisuals(); });
             document.getElementById('link-mode-btn').addEventListener('click', toggleLinkMode);
@@ -816,8 +882,9 @@
             if (!activeGroup) return;
 
             const geometry = new THREE.BoxGeometry(2, 2, 2);
-            const material = new THREE.MeshStandardMaterial({ color: config.color, clippingPlanes: clippingPlanes });
-            const module = new THREE.Mesh(geometry, material);
+            const defaultMaterial = new THREE.MeshStandardMaterial({ color: config.color, clippingPlanes: clippingPlanes });
+            const realisticMaterial = new THREE.MeshStandardMaterial({ color: config.color, metalness: 0.5, roughness: 0.5 });
+            const module = new THREE.Mesh(geometry, defaultMaterial);
             
             const localPosition = activeGroup.worldToLocal(position.clone());
             module.position.copy(localPosition);
@@ -827,7 +894,7 @@
             if (rotation) module.quaternion.copy(rotation);
             if (scale) module.scale.copy(scale);
             
-            module.userData = { name, config, volume: 8, requiredVolume: 0, status: 'valid', level: designState.activeLevelId, isModule: true };
+            module.userData = { name, config, volume: 8, requiredVolume: 0, status: 'valid', level: designState.activeLevelId, isModule: true, defaultMaterial, realisticMaterial };
             
             activeGroup.add(module);
             internalModules.push(module);
@@ -851,8 +918,12 @@
                  const oldScale = config.group ? config.group.scale.clone() : null;
 
                  if (config.group) {
-                     if (config.group.userData.shellMesh) config.group.remove(config.group.userData.shellMesh);
-                     if (config.group.userData.wireframeMesh) config.group.remove(config.group.userData.wireframeMesh);
+                    // Clear previous geometry and materials before adding new ones
+                    const objectsToRemove = [...config.group.children];
+                    objectsToRemove.forEach(child => {
+                        if(child.userData.isModule) return; // Don't remove modules, only shell parts
+                        config.group.remove(child);
+                    });
                  } else {
                      config.group = new THREE.Group();
                      scene.add(config.group);
@@ -861,19 +932,44 @@
 
                 let geometry, volume = 0, levelHeight = 0;
                 const { shape, radius, length, width, height, torusRadius, tubeRadius } = config;
+                 config.group.userData.shape = shape;
                 switch (shape) {
                     case 'cylinder': geometry = new THREE.CylinderGeometry(radius, radius, length, 64); volume = Math.PI * radius * radius * length; levelHeight = length; break;
                     case 'inflatable': geometry = new THREE.CapsuleGeometry(radius, length - (radius * 2), 32, 64); volume = (Math.PI * radius * radius * (length - (radius*2))) + ((4/3) * Math.PI * Math.pow(radius, 3)); levelHeight = length; break;
                     case 'dome': geometry = new THREE.SphereGeometry(radius, 64, 32, 0, Math.PI * 2, 0, Math.PI / 2); volume = (2/3) * Math.PI * Math.pow(radius, 3); levelHeight = radius; break;
                     case 'torus': geometry = new THREE.TorusGeometry(torusRadius, tubeRadius, 32, 100); volume = (Math.PI * tubeRadius * tubeRadius) * (2 * Math.PI * torusRadius); levelHeight = tubeRadius * 2; break;
                     case 'connector': geometry = new THREE.BoxGeometry(width, height, length); volume = width * height * length; levelHeight = height; break;
+                    case 'hexagon': 
+                        geometry = new THREE.CylinderGeometry(radius, radius, length, 6); 
+                        volume = (3 * Math.sqrt(3) / 2) * radius * radius * length; 
+                        levelHeight = length; 
+                        break;
+                    case 'spindle': 
+                        geometry = new THREE.SphereGeometry(radius, 32, 16);
+                        geometry.applyMatrix4(new THREE.Matrix4().makeScale(1.0, 1.0, length / (radius * 2)));
+                        volume = (4/3) * Math.PI * radius * radius * (length / 2);
+                        levelHeight = radius * 2;
+                        break;
+                    case 'saucer': 
+                        geometry = new THREE.CylinderGeometry(radius, radius * 0.8, height, 64);
+                        volume = Math.PI * height / 3 * (radius*radius + (radius*0.8)*(radius*0.8) + radius*(radius*0.8)); // Frustum volume
+                        levelHeight = height;
+                        break;
+                    case 'truss':
+                        geometry = new THREE.BoxGeometry(width, height, length);
+                        volume = 0;
+                        levelHeight = height;
+                        break;
                     default: geometry = new THREE.BoxGeometry(1,1,1); levelHeight = 1;
                 }
                 config.volume = volume;
                 config.group.userData.height = levelHeight;
 
-                const material = new THREE.MeshStandardMaterial({ color: ACTIVE_SHELL_COLOR, transparent: true, opacity: 0.1, side: THREE.DoubleSide, clippingPlanes: clippingPlanes, clipShadows: true });
-                const shellMesh = new THREE.Mesh(geometry, material);
+                const defaultMaterial = new THREE.MeshStandardMaterial({ color: ACTIVE_SHELL_COLOR, transparent: true, opacity: 0.1, side: THREE.DoubleSide, clippingPlanes: clippingPlanes, clipShadows: true });
+                const realisticMaterial = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.9, roughness: 0.2, side: THREE.DoubleSide });
+                const shellMesh = new THREE.Mesh(geometry, defaultMaterial);
+                shellMesh.userData.defaultMaterial = defaultMaterial;
+                shellMesh.userData.realisticMaterial = realisticMaterial;
                 
                 config.group.add(shellMesh);
                 config.group.userData.shellMesh = shellMesh;
@@ -883,6 +979,19 @@
                 const wireframe = new THREE.LineSegments(wireframeGeo, wireframeMat);
                 config.group.add(wireframe);
                 config.group.userData.wireframeMesh = wireframe;
+                 
+                 if (shape === 'truss') {
+                    const trussMaterial = new THREE.MeshStandardMaterial({ color: 0x9ca3af, metalness: 0.8, roughness: 0.4 });
+                    const strutGeo = new THREE.CylinderGeometry(0.2, 0.2, height, 8);
+                    for(let i = -length/2; i <= length/2; i += 4) {
+                        const strut1 = new THREE.Mesh(strutGeo, trussMaterial);
+                        strut1.position.set(width/2, 0, i);
+                        config.group.add(strut1);
+                        const strut2 = new THREE.Mesh(strutGeo, trussMaterial);
+                        strut2.position.set(-width/2, 0, i);
+                        config.group.add(strut2);
+                    }
+                 }
                 
                  if (!oldPosition && !isInitialLoad) {
                      config.group.position.set(initialXOffset, levelHeight / 2, 0);
@@ -895,6 +1004,7 @@
             });
             
             reparentLevels();
+            setViewMode(designState.currentView);
             updateDimensionControls();
             updateLevelView();
             runAnalysis();
@@ -922,7 +1032,7 @@
             const moduleRadius = Math.sqrt((moduleSize.x / 2)**2 + (moduleSize.z / 2)**2);
             const shape = levelConfig.shape;
 
-            if (shape === 'cylinder' || shape === 'inflatable' || shape === 'dome') {
+            if (shape === 'cylinder' || shape === 'inflatable' || shape === 'dome' || shape === 'saucer' || shape === 'spindle') {
                 const habitatRadius = levelConfig.radius;
                 const maxDistance = habitatRadius - moduleRadius;
                 const distanceFromCenter = Math.sqrt(object.position.x**2 + object.position.z**2);
@@ -931,7 +1041,16 @@
                     object.position.x *= ratio;
                     object.position.z *= ratio;
                 }
-            } else if (shape === 'connector') {
+            } else if (shape === 'hexagon') {
+                const habitatRadius = levelConfig.radius * (Math.sqrt(3) / 2);
+                const maxDistance = habitatRadius - moduleRadius;
+                const distanceFromCenter = Math.sqrt(object.position.x**2 + object.position.z**2);
+                if (distanceFromCenter > maxDistance && distanceFromCenter > 0) {
+                    const ratio = maxDistance / distanceFromCenter;
+                    object.position.x *= ratio;
+                    object.position.z *= ratio;
+                }
+            } else if (shape === 'connector' || shape === 'truss') {
                 const halfWidth = (levelConfig.width / 2) - (moduleSize.x / 2);
                 const halfLength = (levelConfig.length / 2) - (moduleSize.z / 2);
                 object.position.x = Math.max(-halfWidth, Math.min(object.position.x, halfWidth));
@@ -971,36 +1090,43 @@
         }
 
         function updateLevelView() {
+            const isRealistic = designState.currentView === 'realistic';
             const activeLevelConfig = levelConfigs.find(c => c.id === designState.activeLevelId);
 
-            if (designState.designMode === 'build') {
+            // Handle clipping planes and grid visibility globally
+            if (isRealistic || designState.designMode === 'build') {
                 clippingPlanes[0].constant = 1000;
                 placementGrid.visible = false;
-            } else { 
+            } else { // Layout mode, not realistic
                 const activeGroup = activeLevelConfig?.group;
                 if (activeGroup) {
                     const box = new THREE.Box3().setFromObject(activeGroup);
                     clippingPlanes[0].constant = box.max.y;
                     const floorY = activeGroup.position.y - (activeGroup.userData.height / 2);
                     placementGrid.position.y = floorY + 0.01;
-                    placementGrid.visible = !designState.is2DView;
+                    placementGrid.visible = designState.currentView !== '2d';
                 } else {
-                     placementGrid.visible = false;
+                    placementGrid.visible = false;
                 }
             }
 
+            // Handle visibility and colors per level
             levelConfigs.forEach((config) => {
                 const group = config.group;
                 if (!group) return;
-                const shellMesh = group.userData.shellMesh;
-                const isActive = (config.id === designState.activeLevelId) && (designState.designMode === 'layout');
-                shellMesh.material.color.setHex(isActive ? ACTIVE_SHELL_COLOR : COMPLETED_SHELL_COLOR);
-                shellMesh.material.opacity = isActive ? 0.15 : 0.1;
-                group.children.find(c => c.type === 'LineSegments').material.opacity = isActive ? 0.3 : 0.2;
+                
+                const isActiveLayout = (config.id === designState.activeLevelId) && (designState.designMode === 'layout');
+
+                if (!isRealistic) {
+                    const shellMesh = group.userData.shellMesh;
+                    shellMesh.material.color.setHex(isActiveLayout ? ACTIVE_SHELL_COLOR : COMPLETED_SHELL_COLOR);
+                    shellMesh.material.opacity = isActiveLayout ? 0.15 : 0.1;
+                }
+
                 group.children.forEach(child => {
                     if (child.userData.isModule) {
-                        child.visible = isActive; 
-                        if (transformControls.object === child && !isActive) {
+                        child.visible = isRealistic || isActiveLayout;
+                        if (transformControls.object === child && !child.visible) {
                             deselectObject();
                         }
                     }
@@ -1009,28 +1135,54 @@
         }
         
         // --- View Management ---
-        function toggleView() {
-            designState.is2DView = !designState.is2DView;
+        function setViewMode(mode) {
+            designState.currentView = mode;
+            const viewModeBtnSpan = document.querySelector('#view-mode-btn span');
+            
             deselectObject();
-            if (designState.is2DView) {
+            orbitControls.enableRotate = true;
+
+            const isRealistic = mode === 'realistic';
+
+            // Apply materials and visibility
+            levelConfigs.forEach(config => {
+                if (config.group && config.group.userData.shellMesh) {
+                    const shellMesh = config.group.userData.shellMesh;
+                    shellMesh.material = isRealistic ? shellMesh.userData.realisticMaterial : shellMesh.userData.defaultMaterial;
+                    if (config.group.userData.wireframeMesh) {
+                        config.group.userData.wireframeMesh.visible = !isRealistic;
+                    }
+                }
+            });
+            internalModules.forEach(module => {
+                module.material = isRealistic ? module.userData.realisticMaterial : module.userData.defaultMaterial;
+            });
+
+
+            if (mode === '2d') {
                 activeCamera = orthographicCamera;
-                viewToggleBtn.textContent = '3D View';
+                viewModeBtnSpan.textContent = '2D View';
                 orbitControls.enableRotate = false;
-                placementGrid.visible = false;
-            } else {
+            } else { // 3d or realistic
                 activeCamera = perspectiveCamera;
-                viewToggleBtn.textContent = '2D View';
-                orbitControls.enableRotate = true;
-                updateLevelView();
+                if (mode === '3d') {
+                    viewModeBtnSpan.textContent = '3D View';
+                } else if (mode === 'realistic') {
+                    viewModeBtnSpan.textContent = 'Realistic View';
+                }
             }
+            
+            updateLevelView();
+
             orbitControls.object = activeCamera;
             transformControls.camera = activeCamera;
             orbitControls.reset();
             onWindowResize();
         }
 
+
         function resetCamera() {
-            if(designState.is2DView) toggleView();
+            setViewMode('3d');
             orbitControls.reset();
             perspectiveCamera.position.copy(INITIAL_CAMERA_POS);
         }
@@ -1135,17 +1287,18 @@
                 const parentLevel = levelConfigs.find(c => c.id === savedModule.level);
                 if (!parentLevel || !parentLevel.group) return;
 
-                designState.activeLevelId = savedModule.level; 
-
+                designState.activeLevelId = savedModule.level; // Temporarily set active level to add module
+                
                 const geometry = new THREE.BoxGeometry(2, 2, 2);
-                const material = new THREE.MeshStandardMaterial({ color: moduleConfig.color, clippingPlanes: clippingPlanes });
-                const module = new THREE.Mesh(geometry, material);
+                const defaultMaterial = new THREE.MeshStandardMaterial({ color: moduleConfig.color, clippingPlanes: clippingPlanes });
+                const realisticMaterial = new THREE.MeshStandardMaterial({ color: moduleConfig.color, metalness: 0.5, roughness: 0.5 });
+                const module = new THREE.Mesh(geometry, defaultMaterial);
                 
                 module.position.fromArray(savedModule.transform.position);
                 module.quaternion.fromArray(savedModule.transform.quaternion);
                 module.scale.fromArray(savedModule.transform.scale);
                 
-                module.userData = { name: savedModule.name, config: moduleConfig, volume: 8, requiredVolume: 0, status: 'valid', level: savedModule.level, isModule: true };
+                module.userData = { name: savedModule.name, config: moduleConfig, volume: 8, requiredVolume: 0, status: 'valid', level: savedModule.level, isModule: true, defaultMaterial, realisticMaterial };
             
                 parentLevel.group.add(module);
                 internalModules.push(module);
@@ -1159,7 +1312,7 @@
             updateUIFromMissionParams();
             populateLevelSelectors();
             updateHabitatShellControls();
-            updateLevelView();
+            setViewMode('3d'); // Always load in default 3d view
             runAnalysis();
         }
 
@@ -1195,11 +1348,65 @@
             updateLevelSelectorVisuals(); 
         }
 
-        function updateLevelSelectorVisuals() { const getShapeSVG = (shape) => { const stroke = 'currentColor'; switch (shape) { case 'cylinder': case 'inflatable': return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><ellipse cx="20" cy="8" rx="15" ry="5" stroke="${stroke}" fill="none" stroke-width="2"/><line x1="5" y1="8" x2="5" y2="32" stroke="${stroke}" stroke-width="2"/><line x1="35" y1="8" x2="35" y2="32" stroke="${stroke}" stroke-width="2"/><ellipse cx="20" cy="32" rx="15" ry="5" stroke="${stroke}" fill="none" stroke-width="2"/></svg>`; case 'dome': return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><path d="M 5 35 A 1 1 0 0 1 35 35 Z" stroke="${stroke}" fill="none" stroke-width="2"/><line x1="5" y1="35" x2="35" y2="35" stroke="${stroke}" stroke-width="2"/></svg>`; case 'torus': return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="15" stroke="${stroke}" fill="none" stroke-width="2"/><circle cx="20" cy="20" r="8" stroke="${stroke}" fill="none" stroke-width="2"/></svg>`; case 'connector': return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="10" width="30" height="20" stroke="${stroke}" fill="none" stroke-width="2"/></svg>`; default: return ''; } }; document.querySelectorAll('.level-btn').forEach(btn => { const levelId = parseInt(btn.dataset.levelId); const config = levelConfigs.find(c => c.id === levelId); if(config) { btn.querySelector('.shape-icon').innerHTML = getShapeSVG(config.shape); } }); }
+        function updateLevelSelectorVisuals() { 
+            const getShapeSVG = (shape) => { 
+                const stroke = 'currentColor'; 
+                switch (shape) { 
+                    case 'cylinder': case 'inflatable': return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><ellipse cx="20" cy="8" rx="15" ry="5" stroke="${stroke}" fill="none" stroke-width="2"/><line x1="5" y1="8" x2="5" y2="32" stroke="${stroke}" stroke-width="2"/><line x1="35" y1="8" x2="35" y2="32" stroke="${stroke}" stroke-width="2"/><ellipse cx="20" cy="32" rx="15" ry="5" stroke="${stroke}" fill="none" stroke-width="2"/></svg>`; 
+                    case 'dome': return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><path d="M 5 35 A 1 1 0 0 1 35 35 Z" stroke="${stroke}" fill="none" stroke-width="2"/><line x1="5" y1="35" x2="35" y2="35" stroke="${stroke}" stroke-width="2"/></svg>`; 
+                    case 'torus': return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="15" stroke="${stroke}" fill="none" stroke-width="2"/><circle cx="20" cy="20" r="8" stroke="${stroke}" fill="none" stroke-width="2"/></svg>`; 
+                    case 'connector': return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="10" width="30" height="20" stroke="${stroke}" fill="none" stroke-width="2"/></svg>`;
+                    case 'hexagon': return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><path d="M20 5 L35 12.5 L35 27.5 L20 35 L5 27.5 L5 12.5 Z" stroke="${stroke}" fill="none" stroke-width="2"/></svg>`;
+                    case 'spindle': return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><ellipse cx="20" cy="20" rx="18" ry="8" stroke="${stroke}" fill="none" stroke-width="2"/></svg>`;
+                    case 'saucer': return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><ellipse cx="20" cy="20" rx="18" ry="6" stroke="${stroke}" fill="none" stroke-width="2"/><path d="M 2 20 L 38 20" stroke="${stroke}" fill="none" stroke-width="1.5" stroke-dasharray="2,2"/></svg>`;
+                    case 'truss': return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="15" width="36" height="10" stroke="${stroke}" fill="none" stroke-width="2"/><line x1="2" y1="15" x2="38" y2="25" stroke="${stroke}" stroke-width="1"/><line x1="2" y1="25" x2="38" y2="15" stroke="${stroke}" stroke-width="1"/></svg>`;
+                    default: return ''; 
+                } 
+            }; 
+            document.querySelectorAll('.level-btn').forEach(btn => { const levelId = parseInt(btn.dataset.levelId); const config = levelConfigs.find(c => c.id === levelId); if(config) { btn.querySelector('.shape-icon').innerHTML = getShapeSVG(config.shape); } }); 
+        }
         function populateChecklist() { checklistListEl.innerHTML = ''; ESSENTIAL_MODULES.forEach(name => { const li = document.createElement('li'); li.id = `checklist-${name.replace(/\s+/g, '-')}`; li.innerHTML = `<span class="mr-2">&#10008;</span> ${name}`; li.className = 'text-red-400'; checklistListEl.appendChild(li); }); }
         function updateHabitatShapeOptions() { const currentShapes = HABITAT_SHAPES[missionParams.environment]; habitatShapeSelect.innerHTML = ''; let shapeNames = {}; Object.entries(currentShapes).forEach(([displayName, value]) => { const option = document.createElement('option'); option.value = value; option.textContent = displayName; habitatShapeSelect.appendChild(option); shapeNames[value] = displayName; }); scene.userData.shapeNames = shapeNames; }
         function updateHabitatShellControls() { const activeConfig = levelConfigs.find(c => c.id === designState.activeLevelId); if(!activeConfig) return; habitatShapeSelect.value = activeConfig.shape; updateDimensionControls(); }
-        function updateDimensionControls() { const container = document.getElementById('dimension-controls'); container.innerHTML = ''; const activeConfig = levelConfigs.find(c => c.id === designState.activeLevelId); if(!activeConfig) return; const createSlider = (id, label, min, max, value, step) => { const wrapper = document.createElement('div'); const flex = document.createElement('div'); flex.className = 'flex items-center justify-between'; flex.innerHTML = `<label for="${id}" class="text-sm">${label}:</label><span id="${id}-value" class="font-mono text-indigo-400">${value}</span>`; const slider = document.createElement('input'); slider.type = 'range'; slider.id = id; slider.min = min; slider.max = max; slider.value = value; slider.step = step; slider.className = 'w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb mt-1'; wrapper.appendChild(flex); wrapper.appendChild(slider); return { wrapper, slider }; }; const shape = activeConfig.shape; if (shape === 'cylinder' || shape === 'inflatable' || shape === 'dome') { const r = createSlider('radius', 'Radius (m)', 2, 10, activeConfig.radius, 0.1); container.appendChild(r.wrapper); r.slider.addEventListener('input', e => { activeConfig.radius = parseFloat(e.target.value); document.getElementById('radius-value').textContent = activeConfig.radius.toFixed(1); createHabitatShells(); }); if (shape !== 'dome') { const l = createSlider('length', 'Length (m)', 2, 20, activeConfig.length, 0.1); container.appendChild(l.wrapper); l.slider.addEventListener('input', e => { activeConfig.length = parseFloat(e.target.value); document.getElementById('length-value').textContent = activeConfig.length.toFixed(1); createHabitatShells(); }); } } else if (shape === 'torus') { const tr = createSlider('torusRadius', 'Torus Radius (m)', 4, 20, activeConfig.torusRadius, 0.1); container.appendChild(tr.wrapper); tr.slider.addEventListener('input', e => { activeConfig.torusRadius = parseFloat(e.target.value); document.getElementById('torusRadius-value').textContent = activeConfig.torusRadius.toFixed(1); createHabitatShells(); }); const tur = createSlider('tubeRadius', 'Tube Radius (m)', 1, 5, activeConfig.tubeRadius, 0.1); container.appendChild(tur.wrapper); tur.slider.addEventListener('input', e => { activeConfig.tubeRadius = parseFloat(e.target.value); document.getElementById('tubeRadius-value').textContent = activeConfig.tubeRadius.toFixed(1); createHabitatShells(); }); } else if (shape === 'connector') { const w = createSlider('width', 'Width (m)', 2, 20, activeConfig.width, 0.1); container.appendChild(w.wrapper); w.slider.addEventListener('input', e => { activeConfig.width = parseFloat(e.target.value); document.getElementById('width-value').textContent = activeConfig.width.toFixed(1); createHabitatShells(); }); const l = createSlider('length', 'Length (m)', 2, 20, activeConfig.length, 0.1); container.appendChild(l.wrapper); l.slider.addEventListener('input', e => { activeConfig.length = parseFloat(e.target.value); document.getElementById('length-value').textContent = activeConfig.length.toFixed(1); createHabitatShells(); }); const h = createSlider('height', 'Height (m)', 2, 10, activeConfig.height, 0.1); container.appendChild(h.wrapper); h.slider.addEventListener('input', e => { activeConfig.height = parseFloat(e.target.value); document.getElementById('height-value').textContent = activeConfig.height.toFixed(1); createHabitatShells(); }); } }
+        function updateDimensionControls() { 
+            const container = document.getElementById('dimension-controls'); 
+            container.innerHTML = ''; 
+            const activeConfig = levelConfigs.find(c => c.id === designState.activeLevelId); 
+            if(!activeConfig) return; 
+            const createSlider = (id, label, min, max, value, step) => { const wrapper = document.createElement('div'); const flex = document.createElement('div'); flex.className = 'flex items-center justify-between'; flex.innerHTML = `<label for="${id}" class="text-sm">${label}:</label><span id="${id}-value" class="font-mono text-indigo-400">${value}</span>`; const slider = document.createElement('input'); slider.type = 'range'; slider.id = id; slider.min = min; slider.max = max; slider.value = value; slider.step = step; slider.className = 'w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb mt-1'; wrapper.appendChild(flex); wrapper.appendChild(slider); return { wrapper, slider }; }; 
+            const shape = activeConfig.shape; 
+            if (['cylinder', 'inflatable', 'dome', 'hexagon', 'saucer', 'spindle'].includes(shape)) {
+                const r = createSlider('radius', 'Radius (m)', 2, 10, activeConfig.radius, 0.1);
+                container.appendChild(r.wrapper);
+                r.slider.addEventListener('input', e => { activeConfig.radius = parseFloat(e.target.value); document.getElementById('radius-value').textContent = activeConfig.radius.toFixed(1); createHabitatShells(); });
+            }
+            if (['cylinder', 'inflatable', 'hexagon', 'spindle'].includes(shape)) {
+                const l = createSlider('length', 'Length (m)', 2, (shape === 'spindle' ? 30 : 20), activeConfig.length, 0.1);
+                container.appendChild(l.wrapper);
+                l.slider.addEventListener('input', e => { activeConfig.length = parseFloat(e.target.value); document.getElementById('length-value').textContent = activeConfig.length.toFixed(1); createHabitatShells(); });
+            }
+            if (shape === 'torus') {
+                const tr = createSlider('torusRadius', 'Torus Radius (m)', 4, 20, activeConfig.torusRadius, 0.1);
+                container.appendChild(tr.wrapper);
+                tr.slider.addEventListener('input', e => { activeConfig.torusRadius = parseFloat(e.target.value); document.getElementById('torusRadius-value').textContent = activeConfig.torusRadius.toFixed(1); createHabitatShells(); });
+                const tur = createSlider('tubeRadius', 'Tube Radius (m)', 1, 5, activeConfig.tubeRadius, 0.1);
+                container.appendChild(tur.wrapper);
+                tur.slider.addEventListener('input', e => { activeConfig.tubeRadius = parseFloat(e.target.value); document.getElementById('tubeRadius-value').textContent = activeConfig.tubeRadius.toFixed(1); createHabitatShells(); });
+            }
+            if (['connector', 'truss'].includes(shape)) {
+                const w = createSlider('width', 'Width (m)', 2, 20, activeConfig.width, 0.1);
+                container.appendChild(w.wrapper);
+                w.slider.addEventListener('input', e => { activeConfig.width = parseFloat(e.target.value); document.getElementById('width-value').textContent = activeConfig.width.toFixed(1); createHabitatShells(); });
+                const l = createSlider('length', 'Length (m)', 2, 20, activeConfig.length, 0.1);
+                container.appendChild(l.wrapper);
+                l.slider.addEventListener('input', e => { activeConfig.length = parseFloat(e.target.value); document.getElementById('length-value').textContent = activeConfig.length.toFixed(1); createHabitatShells(); });
+            }
+            if (['connector', 'truss', 'saucer'].includes(shape)) {
+                const h = createSlider('height', 'Height (m)', 2, 10, activeConfig.height, 0.1);
+                container.appendChild(h.wrapper);
+                h.slider.addEventListener('input', e => { activeConfig.height = parseFloat(e.target.value); document.getElementById('height-value').textContent = activeConfig.height.toFixed(1); createHabitatShells(); });
+            }
+        }
         function updateSceneEnvironment() { if (missionParams.environment === 'orbit') { scene.background = scene.userData.skyboxTexture || new THREE.Color(0x111827); scene.fog = null; if(scene.children.includes(groundPlane)) scene.remove(groundPlane); if(scene.children.includes(surfaceFeatures)) scene.remove(surfaceFeatures); orbitControls.maxPolarAngle = Math.PI; } else { scene.background = new THREE.Color(0x000000); scene.fog = new THREE.FogExp2(0x935837, 0.005); if(!scene.children.includes(groundPlane)) scene.add(groundPlane); if(!scene.children.includes(surfaceFeatures)) scene.add(surfaceFeatures); orbitControls.maxPolarAngle = Math.PI / 2 - 0.05; } }
         function updateUIFromMissionParams() { document.querySelector(`input[name="environment"][value="${missionParams.environment}"]`).checked = true; updateHabitatShapeOptions(); updateSceneEnvironment(); }
         function clearAllModules() { deselectObject(); [...internalModules].forEach(module => { module.parent?.remove(module); }); internalModules.length = 0; runAnalysis(); }
@@ -1305,4 +1512,6 @@
     </script>
 </body>
 </html>
+" and would like to change it.
+queri que a pagina home.html fosse mais interativa, com um globo terrestre no fundo e um botao de começar no centro
 
