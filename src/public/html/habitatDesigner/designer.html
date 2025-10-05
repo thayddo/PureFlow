@@ -99,9 +99,16 @@
         
         <!-- Left Control Panel -->
         <div class="w-1/4 max-w-sm h-full bg-gray-800 p-4 shadow-lg overflow-y-auto flex flex-col space-y-6">
-            <div>
-                <h1 class="text-2xl font-bold text-indigo-400">Habitat Designer</h1>
-                <p class="text-sm text-gray-400">Configure your mission and habitat layout.</p>
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 class="text-2xl font-bold text-indigo-400">Habitat Designer</h1>
+                    <p class="text-sm text-gray-400">Configure your mission and habitat layout.</p>
+                </div>
+                <button id="back-btn" title="Go back to mission setup" class="p-2 bg-gray-700 hover:bg-indigo-600 rounded-full transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                    </svg>
+                </button>
             </div>
             
             <div class="space-y-4 bg-gray-900 p-4 rounded-lg">
@@ -150,6 +157,18 @@
             </div>
 
             <div class="space-y-4 bg-gray-900 p-4 rounded-lg">
+                <h2 class="font-semibold text-lg border-b border-gray-700 pb-2">Gerenciamento</h2>
+                <div class="flex justify-center gap-2 mt-2">
+                    <button id="save-btn" title="Salva o design atual no navegador" class="w-full p-2 text-sm bg-indigo-600 hover:bg-indigo-700 rounded-md transition-colors">Salvar</button>
+                    <button id="load-btn" title="Carrega um design de um arquivo" class="w-full p-2 text-sm bg-gray-600 hover:bg-gray-700 rounded-md transition-colors">Carregar</button>
+                </div>
+                 <div class="flex justify-center gap-2 mt-2">
+                     <button id="download-btn" title="Baixa o design atual como um arquivo" class="w-full p-2 text-sm bg-green-600 hover:bg-green-700 rounded-md transition-colors">Baixar JSON</button>
+                </div>
+                <input type="file" id="load-input" class="hidden" accept=".json">
+            </div>
+
+            <div class="space-y-4 bg-gray-900 p-4 rounded-lg">
                 <h2 class="font-semibold text-lg border-b border-gray-700 pb-2">Structure (Active Level)</h2>
                 <div>
                     <label for="habitat-shape" class="text-sm">Shape:</label>
@@ -190,7 +209,7 @@
                     2D View
                 </button>
                  <button id="reset-camera-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-transform transform hover:scale-105">
-                     Reset Camera
+                      Reset Camera
                  </button>
             </div>
         </div>
@@ -246,7 +265,7 @@
              <div class="bg-gray-900 p-4 rounded-lg flex-grow">
                  <h3 class="font-semibold text-lg border-b border-gray-700 pb-2 text-yellow-400">Alerts & Warnings</h3>
                  <ul id="alerts-list" class="text-sm space-y-2 mt-2 list-disc list-inside">
-                      <li class="text-gray-500">No alerts at this time.</li>
+                       <li class="text-gray-500">No alerts at this time.</li>
                  </ul>
              </div>
         </div>
@@ -397,7 +416,21 @@
             loadAssets();
             setupUI();
             createPlacementGrid();
-            createHabitatShells();
+
+            // Attempt to load from localStorage, otherwise create default shells
+            const savedStateJSON = localStorage.getItem('habitatDesignerState');
+            if (savedStateJSON) {
+                try {
+                    rebuildSceneFromState(JSON.parse(savedStateJSON));
+                } catch (e) {
+                    console.error("Failed to load saved state:", e);
+                    localStorage.removeItem('habitatDesignerState');
+                    createHabitatShells(); // Fallback to default
+                }
+            } else {
+                 createHabitatShells(); // Default setup
+            }
+
             runAnalysis();
             animate();
 
@@ -578,7 +611,7 @@
                 }
             } else {
                  if (!transformControls.dragging) {
-                      deselectObject();
+                       deselectObject();
                  }
             }
         }
@@ -616,6 +649,7 @@
         }
         
         function setupUI() {
+            document.getElementById('back-btn').addEventListener('click', () => { window.history.back(); });
             document.querySelectorAll('input[name="environment"]').forEach(radio => radio.addEventListener('change', (e) => { missionParams.environment = e.target.value; updateHabitatShapeOptions(); updateSceneEnvironment(); createHabitatShells(); }));
             document.querySelectorAll('input[name="design-mode"]').forEach(radio => radio.addEventListener('change', (e) => { 
                 designState.designMode = e.target.value; 
@@ -684,6 +718,13 @@
             document.getElementById('remove-level-btn').addEventListener('click', toggleRemovalMode);
             document.getElementById('stack-levels-btn').addEventListener('click', stackAllLevels);
             document.getElementById('delete-module-btn').addEventListener('click', deleteSelectedObject);
+
+            // Save/Load Listeners
+            document.getElementById('save-btn').addEventListener('click', saveState);
+            document.getElementById('download-btn').addEventListener('click', downloadState);
+            const loadInput = document.getElementById('load-input');
+            document.getElementById('load-btn').addEventListener('click', () => loadInput.click());
+            loadInput.addEventListener('change', loadStateFromFile);
             
             updateHabitatShapeOptions();
             populateChecklist();
@@ -770,7 +811,7 @@
             });
         }
         
-        function addFunctionalModule(name, config, position) {
+        function addFunctionalModule(name, config, position, rotation, scale) {
             const activeGroup = levelConfigs.find(c => c.id === designState.activeLevelId)?.group;
             if (!activeGroup) return;
 
@@ -782,6 +823,9 @@
             module.position.copy(localPosition);
             
             module.position.y = (-activeGroup.userData.height / 2) + 1; 
+
+            if (rotation) module.quaternion.copy(rotation);
+            if (scale) module.scale.copy(scale);
             
             module.userData = { name, config, volume: 8, requiredVolume: 0, status: 'valid', level: designState.activeLevelId, isModule: true };
             
@@ -792,14 +836,13 @@
             runAnalysis();
         }
 
-        function createHabitatShells() {
+        function createHabitatShells(isInitialLoad = false) {
             levelConfigs.forEach(config => {
                 if (config.parent !== null && config.group) {
                     scene.attach(config.group);
                 }
             });
 
-            const isFirstCreation = !levelConfigs.some(c => c.group !== null);
             let initialXOffset = -((levelConfigs.length - 1) * 10);
 
             levelConfigs.forEach((config) => {
@@ -808,11 +851,11 @@
                  const oldScale = config.group ? config.group.scale.clone() : null;
 
                  if (config.group) {
-                    if (config.group.userData.shellMesh) config.group.remove(config.group.userData.shellMesh);
-                    if (config.group.userData.wireframeMesh) config.group.remove(config.group.userData.wireframeMesh);
+                     if (config.group.userData.shellMesh) config.group.remove(config.group.userData.shellMesh);
+                     if (config.group.userData.wireframeMesh) config.group.remove(config.group.userData.wireframeMesh);
                  } else {
-                    config.group = new THREE.Group();
-                    scene.add(config.group);
+                     config.group = new THREE.Group();
+                     scene.add(config.group);
                  }
                  config.group.userData.levelId = config.id;
 
@@ -841,13 +884,13 @@
                 config.group.add(wireframe);
                 config.group.userData.wireframeMesh = wireframe;
                 
-                 if (!oldPosition) {
-                    config.group.position.set(initialXOffset, levelHeight / 2, 0);
-                    initialXOffset += 20;
-                 } else {
-                    config.group.position.copy(oldPosition);
-                    config.group.rotation.copy(oldRotation);
-                    config.group.scale.copy(oldScale);
+                 if (!oldPosition && !isInitialLoad) {
+                     config.group.position.set(initialXOffset, levelHeight / 2, 0);
+                     initialXOffset += 20;
+                 } else if (oldPosition) {
+                     config.group.position.copy(oldPosition);
+                     config.group.rotation.copy(oldRotation);
+                     config.group.scale.copy(oldScale);
                  }
             });
             
@@ -998,6 +1041,129 @@
             renderer.render(scene, activeCamera);
         }
 
+        // --- Save & Load ---
+        function saveState() {
+            const state = {
+                missionParams,
+                nextLevelId,
+                levelConfigs: levelConfigs.map(c => ({
+                    ...c,
+                    group: null, // Don't save the THREE.Group object itself
+                    transform: c.group ? {
+                        position: c.group.position.toArray(),
+                        quaternion: c.group.quaternion.toArray(),
+                        scale: c.group.scale.toArray()
+                    } : null
+                })),
+                internalModules: internalModules.map(m => ({
+                    name: m.userData.name,
+                    level: m.userData.level,
+                    transform: {
+                        position: m.position.toArray(),
+                        quaternion: m.quaternion.toArray(),
+                        scale: m.scale.toArray()
+                    }
+                }))
+            };
+            const jsonState = JSON.stringify(state, null, 2);
+            localStorage.setItem('habitatDesignerState', jsonState);
+            console.log("State saved to localStorage.");
+            return jsonState;
+        }
+
+        function downloadState() {
+            const jsonState = saveState();
+            const blob = new Blob([jsonState], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'habitat-design.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function loadStateFromFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const state = JSON.parse(e.target.result);
+                    rebuildSceneFromState(state);
+                } catch (err) {
+                    console.error("Error parsing loaded file:", err);
+                    alert("Error: Could not load the design file. It may be corrupted.");
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Reset input to allow loading the same file again
+        }
+
+        function rebuildSceneFromState(state) {
+            // 1. Clear current scene
+            deselectObject();
+            levelConfigs.forEach(c => c.group && scene.remove(c.group));
+            internalModules.length = 0;
+            
+            // 2. Load state data
+            missionParams = state.missionParams;
+            levelConfigs = state.levelConfigs.map(c => ({ ...c, group: null })); // groups will be created
+            nextLevelId = state.nextLevelId || Math.max(...levelConfigs.map(c=>c.id)) + 1;
+            
+            // 3. Rebuild scene objects
+            createHabitatShells(true); // Create shells without default positioning
+
+            // 4. Apply transforms to levels
+            state.levelConfigs.forEach(savedConfig => {
+                const config = levelConfigs.find(c => c.id === savedConfig.id);
+                if (config && config.group && savedConfig.transform) {
+                    config.group.position.fromArray(savedConfig.transform.position);
+                    config.group.quaternion.fromArray(savedConfig.transform.quaternion);
+                    config.group.scale.fromArray(savedConfig.transform.scale);
+                }
+            });
+            reparentLevels();
+
+            // 5. Re-add modules
+            state.internalModules.forEach(savedModule => {
+                const moduleConfig = MODULE_TYPES[savedModule.name];
+                if (!moduleConfig) return;
+
+                const parentLevel = levelConfigs.find(c => c.id === savedModule.level);
+                if (!parentLevel || !parentLevel.group) return;
+
+                designState.activeLevelId = savedModule.level; 
+
+                const geometry = new THREE.BoxGeometry(2, 2, 2);
+                const material = new THREE.MeshStandardMaterial({ color: moduleConfig.color, clippingPlanes: clippingPlanes });
+                const module = new THREE.Mesh(geometry, material);
+                
+                module.position.fromArray(savedModule.transform.position);
+                module.quaternion.fromArray(savedModule.transform.quaternion);
+                module.scale.fromArray(savedModule.transform.scale);
+                
+                module.userData = { name: savedModule.name, config: moduleConfig, volume: 8, requiredVolume: 0, status: 'valid', level: savedModule.level, isModule: true };
+            
+                parentLevel.group.add(module);
+                internalModules.push(module);
+            });
+
+
+            // 6. Refresh UI and analysis
+            if (levelConfigs.length > 0) {
+                 designState.activeLevelId = levelConfigs[0].id;
+            }
+            updateUIFromMissionParams();
+            populateLevelSelectors();
+            updateHabitatShellControls();
+            updateLevelView();
+            runAnalysis();
+        }
+
+
         // --- UI & State Functions ---
         function reparentLevels() { levelConfigs.forEach(config => { if (config.parent !== null) { const parentConfig = levelConfigs.find(p => p.id === config.parent); if (parentConfig && parentConfig.group) { parentConfig.group.attach(config.group); } } }); updateConnectionsVisuals(); }
         
@@ -1035,6 +1201,7 @@
         function updateHabitatShellControls() { const activeConfig = levelConfigs.find(c => c.id === designState.activeLevelId); if(!activeConfig) return; habitatShapeSelect.value = activeConfig.shape; updateDimensionControls(); }
         function updateDimensionControls() { const container = document.getElementById('dimension-controls'); container.innerHTML = ''; const activeConfig = levelConfigs.find(c => c.id === designState.activeLevelId); if(!activeConfig) return; const createSlider = (id, label, min, max, value, step) => { const wrapper = document.createElement('div'); const flex = document.createElement('div'); flex.className = 'flex items-center justify-between'; flex.innerHTML = `<label for="${id}" class="text-sm">${label}:</label><span id="${id}-value" class="font-mono text-indigo-400">${value}</span>`; const slider = document.createElement('input'); slider.type = 'range'; slider.id = id; slider.min = min; slider.max = max; slider.value = value; slider.step = step; slider.className = 'w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb mt-1'; wrapper.appendChild(flex); wrapper.appendChild(slider); return { wrapper, slider }; }; const shape = activeConfig.shape; if (shape === 'cylinder' || shape === 'inflatable' || shape === 'dome') { const r = createSlider('radius', 'Radius (m)', 2, 10, activeConfig.radius, 0.1); container.appendChild(r.wrapper); r.slider.addEventListener('input', e => { activeConfig.radius = parseFloat(e.target.value); document.getElementById('radius-value').textContent = activeConfig.radius.toFixed(1); createHabitatShells(); }); if (shape !== 'dome') { const l = createSlider('length', 'Length (m)', 2, 20, activeConfig.length, 0.1); container.appendChild(l.wrapper); l.slider.addEventListener('input', e => { activeConfig.length = parseFloat(e.target.value); document.getElementById('length-value').textContent = activeConfig.length.toFixed(1); createHabitatShells(); }); } } else if (shape === 'torus') { const tr = createSlider('torusRadius', 'Torus Radius (m)', 4, 20, activeConfig.torusRadius, 0.1); container.appendChild(tr.wrapper); tr.slider.addEventListener('input', e => { activeConfig.torusRadius = parseFloat(e.target.value); document.getElementById('torusRadius-value').textContent = activeConfig.torusRadius.toFixed(1); createHabitatShells(); }); const tur = createSlider('tubeRadius', 'Tube Radius (m)', 1, 5, activeConfig.tubeRadius, 0.1); container.appendChild(tur.wrapper); tur.slider.addEventListener('input', e => { activeConfig.tubeRadius = parseFloat(e.target.value); document.getElementById('tubeRadius-value').textContent = activeConfig.tubeRadius.toFixed(1); createHabitatShells(); }); } else if (shape === 'connector') { const w = createSlider('width', 'Width (m)', 2, 20, activeConfig.width, 0.1); container.appendChild(w.wrapper); w.slider.addEventListener('input', e => { activeConfig.width = parseFloat(e.target.value); document.getElementById('width-value').textContent = activeConfig.width.toFixed(1); createHabitatShells(); }); const l = createSlider('length', 'Length (m)', 2, 20, activeConfig.length, 0.1); container.appendChild(l.wrapper); l.slider.addEventListener('input', e => { activeConfig.length = parseFloat(e.target.value); document.getElementById('length-value').textContent = activeConfig.length.toFixed(1); createHabitatShells(); }); const h = createSlider('height', 'Height (m)', 2, 10, activeConfig.height, 0.1); container.appendChild(h.wrapper); h.slider.addEventListener('input', e => { activeConfig.height = parseFloat(e.target.value); document.getElementById('height-value').textContent = activeConfig.height.toFixed(1); createHabitatShells(); }); } }
         function updateSceneEnvironment() { if (missionParams.environment === 'orbit') { scene.background = scene.userData.skyboxTexture || new THREE.Color(0x111827); scene.fog = null; if(scene.children.includes(groundPlane)) scene.remove(groundPlane); if(scene.children.includes(surfaceFeatures)) scene.remove(surfaceFeatures); orbitControls.maxPolarAngle = Math.PI; } else { scene.background = new THREE.Color(0x000000); scene.fog = new THREE.FogExp2(0x935837, 0.005); if(!scene.children.includes(groundPlane)) scene.add(groundPlane); if(!scene.children.includes(surfaceFeatures)) scene.add(surfaceFeatures); orbitControls.maxPolarAngle = Math.PI / 2 - 0.05; } }
+        function updateUIFromMissionParams() { document.querySelector(`input[name="environment"][value="${missionParams.environment}"]`).checked = true; updateHabitatShapeOptions(); updateSceneEnvironment(); }
         function clearAllModules() { deselectObject(); [...internalModules].forEach(module => { module.parent?.remove(module); }); internalModules.length = 0; runAnalysis(); }
         function selectObject(object) { if ((designState.designMode === 'layout' && object.userData.isModule) || (designState.designMode === 'build' && !object.userData.isModule)) { transformControls.attach(object); selectedModuleInfoEl.classList.add('hidden'); engineeringRationaleEl.classList.add('hidden'); if (object.userData.isModule) { selectedModuleInfoEl.classList.remove('hidden'); updateSelectedModuleInfo(object); } else { engineeringRationaleEl.classList.remove('hidden'); updateEngineeringRationale(object); } } }
         function deselectObject() { transformControls.detach(); selectedModuleInfoEl.classList.add('hidden'); engineeringRationaleEl.classList.add('hidden'); }
