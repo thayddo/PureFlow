@@ -179,6 +179,24 @@
                         <label for="env-surface" class="text-sm ml-1">Planetary Surface</label>
                     </div>
                 </div>
+                <!-- Space Weather Intel Panel -->
+                <div class="bg-gradient-to-r from-red-500 to-orange-500 p-3 rounded-lg mb-4" id="spaceWeatherPanel" style="display: none;">
+                    <div class="flex items-center mb-2">
+                        <svg class="w-5 h-5 text-white mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.707-10.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L9.414 11H13a1 1 0 100-2H9.414l1.293-1.293z" clip-rule="evenodd"></path>
+                        </svg>
+                        <h4 class="text-white font-bold text-sm">SPACE WEATHER ALERT</h4>
+                    </div>
+                    <p class="text-white text-xs mb-2" id="solarStormInfo">WARNING: Active Solar Storm Detected - Enhanced Radiation Levels</p>
+                    <div class="text-white text-xs">
+                        <div>Status: <span id="stormSeverity">Moderate</span></div>
+                        <div>Started: <span id="stormStartTime">--</span></div>
+                        <div>Type: <span id="stormType">Solar Flare</span></div>
+                        <div class="mt-2 p-2 bg-black bg-opacity-30 rounded">
+                            <strong>RECOMMENDATION:</strong> Ensure Storm Shelter module is included for crew protection during radiation events.
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <div class="space-y-4 bg-gray-900 p-4 rounded-lg">
@@ -292,6 +310,25 @@
                 </button>
             </div>
 
+            <!-- Space Weather Intel Panel -->
+            <div class="bg-gradient-to-r from-red-500 to-orange-500 p-3 rounded-lg mb-4" id="spaceWeatherPanel" style="display: none;">
+                <div class="flex items-center mb-2">
+                    <svg class="w-5 h-5 text-white mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.707-10.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L9.414 11H13a1 1 0 100-2H9.414l1.293-1.293z" clip-rule="evenodd"></path>
+                    </svg>
+                    <h4 class="text-white font-bold text-sm">SPACE WEATHER ALERT</h4>
+                </div>
+                <p class="text-white text-xs mb-2" id="solarStormInfo">WARNING: Active Solar Storm Detected - Enhanced Radiation Levels</p>
+                <div class="text-white text-xs">
+                    <div>Status: <span id="stormSeverity">Moderate</span></div>
+                    <div>Started: <span id="stormStartTime">--</span></div>
+                    <div>Type: <span id="stormType">Solar Flare</span></div>
+                    <div class="mt-2 p-2 bg-black bg-opacity-30 rounded">
+                        <strong>RECOMMENDATION:</strong> Ensure Storm Shelter module is included for crew protection during radiation events.
+                    </div>
+                </div>
+            </div>
+            
             <div class="bg-gray-900 p-4 rounded-lg">
                 <h3 class="font-semibold text-lg border-b border-gray-700 pb-2">Habitat Totals</h3>
                 <div class="text-sm space-y-2 mt-2">
@@ -443,6 +480,33 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { TransformControls } from 'three/addons/controls/TransformControls.js';
+
+        // NASA DONKI Space Weather API Integration
+        const DONKI_API_BASE = 'https://api.nasa.gov/DONKI';
+        const NASA_API_KEY = 'DEMO_KEY'; // Replace with actual API key for production
+        
+        async function fetchActiveSpaceWeatherEvents() {
+            try {
+                const endDate = new Date();
+                const startDate = new Date(endDate.getTime() - (7 * 24 * 60 * 60 * 1000)); // Last 7 days
+                
+                const endpoints = [
+                    `${DONKI_API_BASE}/FLR?startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate.toISOString().split('T')[0]}&api_key=${NASA_API_KEY}`,
+                    `${DONKI_API_BASE}/SEP?startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate.toISOString().split('T')[0]}&api_key=${NASA_API_KEY}`,
+                    `${DONKI_API_BASE}/CME?startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate.toISOString().split('T')[0]}&api_key=${NASA_API_KEY}`
+                ];
+                
+                const responses = await Promise.all(endpoints.map(url => 
+                    fetch(url).then(res => res.json()).catch(() => [])
+                ));
+                
+                const [flares, seps, cmes] = responses;
+                return { flares: flares || [], seps: seps || [], cmes: cmes || [] };
+            } catch (error) {
+                console.warn('Space Weather API Error:', error);
+                return { flares: [], seps: [], cmes: [] };
+            }
+        }
 
         // --- Technical Analysis Data & Functions (Integrated) ---
 
@@ -729,6 +793,17 @@
             'Science Lab': { color: 0x059669, volumePerCrew: 12, adjacencyWarning: [] },
             'Greenhouse': { color: 0x16a34a, volumePerCrew: 8, adjacencyWarning: ['Waste Management'] },
             'Airlock': { color: 0x9ca3af, volumePerCrew: 2, adjacencyWarning: [] },
+            'Storm Shelter': {
+                color: 0x991b1b,
+                volumePerCrew: 2,
+                description: 'Radiation-shielded emergency shelter for solar storm protection',
+                shieldingFactor: 0.9,
+                emergencySupplyDays: 3,
+                adjacencyPreference: ['Crew Quarters', 'Medical Bay'],
+                requiredForEnvironments: ['orbit', 'surface'],
+                criticalForSpaceWeather: true,
+                adjacencyWarning: []
+            },
         };
 
         const MODULE_ICONS = {
@@ -744,6 +819,7 @@
             'Science Lab': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547a2 2 0 00-.547 1.806l.477 2.387a6 6 0 00.517 3.86l.158.318a6 6 0 003.86.517l2.387.477a2 2 0 001.806-.547a2 2 0 00.547-1.806l-.477-2.387a6 6 0 00-.517-3.86l-.158-.318z" /><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 10.25l1.5 1.5m0 0l-1.5 1.5m1.5-1.5h-3m-6 0l-1.5-1.5m0 0l1.5-1.5m-1.5 1.5h3" /></svg>`,
             'Greenhouse': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.121 15.879A3 3 0 0112.025 18a3 3 0 01-2.096-2.121m0 0A3 3 0 0012.025 12a3 3 0 002.096-2.121m-4.192 0A3 3 0 0112.025 6a3 3 0 012.096 2.121m0 0A3 3 0 0016.12 12a3 3 0 00-2.096 2.121" /></svg>`,
             'Airlock': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>`,
+            'Storm Shelter': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016zM12 7v5l-3 3" /></svg>`,
             'default': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>`
         };
         
@@ -816,6 +892,85 @@
 
         // --- State ---
         let missionParams = { crewSize: 4, duration: 365, environment: 'orbit' };
+        
+        // Space Weather Monitoring State
+        let isSolarStormActive = false;
+        let currentSpaceWeatherData = null;
+        let spaceWeatherCheckInterval = null;
+        
+        async function checkSpaceWeather() {
+            const weatherData = await fetchActiveSpaceWeatherEvents();
+            const now = new Date();
+            
+            // Check for active events (within last 24 hours for flares, 72 hours for CMEs/SEPs)
+            const activeFlares = weatherData.flares.filter(flare => {
+                const eventTime = new Date(flare.beginTime || flare.peakTime);
+                const hoursSinceEvent = (now - eventTime) / (1000 * 60 * 60);
+                return hoursSinceEvent <= 24 && (flare.classType?.includes('X') || flare.classType?.includes('M'));
+            });
+            
+            const activeSEPs = weatherData.seps.filter(sep => {
+                const eventTime = new Date(sep.eventTime);
+                const hoursSinceEvent = (now - eventTime) / (1000 * 60 * 60);
+                return hoursSinceEvent <= 72;
+            });
+            
+            const activeCMEs = weatherData.cmes.filter(cme => {
+                const eventTime = new Date(cme.activityID?.split('-')[0] + 'T00:00:00Z');
+                const hoursSinceEvent = (now - eventTime) / (1000 * 60 * 60);
+                return hoursSinceEvent <= 72;
+            });
+            
+            const hasActiveEvents = activeFlares.length > 0 || activeSEPs.length > 0 || activeCMEs.length > 0;
+            
+            if (hasActiveEvents !== isSolarStormActive) {
+                isSolarStormActive = hasActiveEvents;
+                currentSpaceWeatherData = { flares: activeFlares, seps: activeSEPs, cmes: activeCMEs };
+                updateSpaceWeatherUI();
+                runAnalysis(); // Re-run analysis when storm status changes
+            }
+        }
+        
+        function updateSpaceWeatherUI() {
+            const panel = document.getElementById('spaceWeatherPanel');
+            const stormInfo = document.getElementById('solarStormInfo');
+            const severity = document.getElementById('stormSeverity');
+            const startTime = document.getElementById('stormStartTime');
+            const stormType = document.getElementById('stormType');
+            
+            if (isSolarStormActive && currentSpaceWeatherData) {
+                panel.style.display = 'block';
+                
+                // Determine most severe event
+                let mostSevereEvent = null;
+                let severityLevel = 'Low';
+                let eventType = 'Solar Activity';
+                
+                if (currentSpaceWeatherData.flares.length > 0) {
+                    mostSevereEvent = currentSpaceWeatherData.flares[0];
+                    eventType = 'Solar Flare';
+                    severityLevel = mostSevereEvent.classType?.includes('X') ? 'Extreme' : 'Moderate';
+                } else if (currentSpaceWeatherData.seps.length > 0) {
+                    mostSevereEvent = currentSpaceWeatherData.seps[0];
+                    eventType = 'Solar Energetic Particle Event';
+                    severityLevel = 'High';
+                } else if (currentSpaceWeatherData.cmes.length > 0) {
+                    mostSevereEvent = currentSpaceWeatherData.cmes[0];
+                    eventType = 'Coronal Mass Ejection';
+                    severityLevel = 'Moderate';
+                }
+                
+                severity.textContent = severityLevel;
+                stormType.textContent = eventType;
+                
+                if (mostSevereEvent) {
+                    const eventTime = new Date(mostSevereEvent.beginTime || mostSevereEvent.peakTime || mostSevereEvent.eventTime || mostSevereEvent.activityID?.split('-')[0] + 'T00:00:00Z');
+                    startTime.textContent = eventTime.toLocaleString();
+                }
+            } else {
+                panel.style.display = 'none';
+            }
+        }
         let nextLevelId = 1; // Start next ID at 1
         let levelConfigs = [
             // Start with one default level
@@ -845,6 +1000,10 @@
                 localStorage.removeItem('missionCrewSize');
                 localStorage.removeItem('missionDuration');
             }
+            
+            // Initialize Space Weather Monitoring
+            checkSpaceWeather(); // Initial check
+            spaceWeatherCheckInterval = setInterval(checkSpaceWeather, 15 * 60 * 1000); // Check every 15 minutes
 
 
             scene = new THREE.Scene();
@@ -1932,7 +2091,24 @@
             });
         }
 
-        function runAnalysis() { let totalModuleVolume = 0; const alerts = new Set(); const presentModules = new Set(internalModules.map(m => m.userData.name)); internalModules.forEach(module => { const { name, config, volume } = module.userData; const { crewSize, duration } = missionParams; let required = config.volumePerCrew * crewSize; if(config.missionDurationFactor) { required += required * (duration / 365) * config.missionDurationFactor; } module.userData.requiredVolume = required; if (volume < required) { module.material.emissive.setHex(0xff0000); module.userData.status = 'too_small'; alerts.add(`${name} is undersized. Req: ${required.toFixed(1)} m³, Current: ${volume.toFixed(1)} m³.`); } else { module.material.emissive.setHex(0x000000); module.userData.status = 'valid'; } totalModuleVolume += volume; }); for (let i = 0; i < internalModules.length; i++) { for (let j = i + 1; j < internalModules.length; j++) { const modA = internalModules[i]; const modB = internalModules[j]; if (modA.userData.level !== modB.userData.level) continue; const boxA = new THREE.Box3().setFromObject(modA, true); const boxB = new THREE.Box3().setFromObject(modB, true); if (boxA.intersectsBox(boxB)) { alerts.add(`Overlap detected between ${modA.userData.name} and ${modB.userData.name}.`); const warningsA = modA.userData.config.adjacencyWarning || []; const warningsB = modB.userData.config.adjacencyWarning || []; if (warningsA.includes(modB.userData.name)) { alerts.add(`Zoning: ${modA.userData.name} should not be adjacent to ${modB.userData.name}.`); } if (warningsB.includes(modA.userData.name)) { alerts.add(`Zoning: ${modB.userData.name} should not be adjacent to ${modA.userData.name}.`); } } } } updateStatsUI(totalModuleVolume); updateAlertsUI(alerts); updateChecklistUI(presentModules); updateOxygenAnalysisUI(missionParams.crewSize); if (transformControls.object && transformControls.object.userData.isModule) { updateSelectedModuleInfo(transformControls.object); } }
+        function runAnalysis() { let totalModuleVolume = 0; const alerts = new Set(); const presentModules = new Set(internalModules.map(m => m.userData.name)); internalModules.forEach(module => { const { name, config, volume } = module.userData; const { crewSize, duration } = missionParams; let required = config.volumePerCrew * crewSize; if(config.missionDurationFactor) { required += required * (duration / 365) * config.missionDurationFactor; } module.userData.requiredVolume = required; if (volume < required) { module.material.emissive.setHex(0xff0000); module.userData.status = 'too_small'; alerts.add(`${name} is undersized. Req: ${required.toFixed(1)} m³, Current: ${volume.toFixed(1)} m³.`); } else { module.material.emissive.setHex(0x000000); module.userData.status = 'valid'; } totalModuleVolume += volume; }); for (let i = 0; i < internalModules.length; i++) { for (let j = i + 1; j < internalModules.length; j++) { const modA = internalModules[i]; const modB = internalModules[j]; if (modA.userData.level !== modB.userData.level) continue; const boxA = new THREE.Box3().setFromObject(modA, true); const boxB = new THREE.Box3().setFromObject(modB, true); if (boxA.intersectsBox(boxB)) { alerts.add(`Overlap detected between ${modA.userData.name} and ${modB.userData.name}.`); const warningsA = modA.userData.config.adjacencyWarning || []; const warningsB = modB.userData.config.adjacencyWarning || []; if (warningsA.includes(modB.userData.name)) { alerts.add(`Zoning: ${modA.userData.name} should not be adjacent to ${modB.userData.name}.`); } if (warningsB.includes(modA.userData.name)) { alerts.add(`Zoning: ${modB.userData.name} should not be adjacent to ${modA.userData.name}.`); } } } } 
+            // Space Weather Analysis: Check for Storm Shelter during active solar storms
+            if (isSolarStormActive) {
+                if (!presentModules.has('Storm Shelter')) {
+                    alerts.add(`CRITICAL: Storm Shelter required during active solar storm events for crew radiation protection.`);
+                } else {
+                    // Check if storm shelter is adequately sized for crew
+                    const stormShelter = internalModules.find(m => m.userData.name === 'Storm Shelter');
+                    if (stormShelter) {
+                        const requiredShelterVolume = MODULE_TYPES['Storm Shelter'].volumePerCrew * missionParams.crewSize;
+                        if (stormShelter.userData.volume < requiredShelterVolume) {
+                            alerts.add(`Storm Shelter undersized for crew of ${missionParams.crewSize}. Required: ${requiredShelterVolume.toFixed(1)} m³`);
+                        }
+                    }
+                }
+            }
+            
+            updateStatsUI(totalModuleVolume); updateAlertsUI(alerts); updateChecklistUI(presentModules); updateOxygenAnalysisUI(missionParams.crewSize); if (transformControls.object && transformControls.object.userData.isModule) { updateSelectedModuleInfo(transformControls.object); } }
         function updateOxygenAnalysisUI(crewSize) { const requiredOxygen = crewSize * OXYGEN_PER_PERSON_L_DAY; oxygenCrewSizeEl.textContent = crewSize; oxygenRequiredEl.textContent = `${requiredOxygen.toFixed(0)} L/day`; }
         function updateChecklistUI(presentModules) { ESSENTIAL_MODULES.forEach(name => { const li = document.getElementById(`checklist-${name.replace(/\s+/g, '-')}`); if (li) { if (presentModules.has(name)) { li.innerHTML = `<span class="mr-2">&#10004;</span> ${name}`; li.className = 'text-green-400'; } else { li.innerHTML = `<span class="mr-2">&#10008;</span> ${name}`; li.className = 'text-red-400'; } } }); }
         function updateStatsUI(totalModuleVolume) { const totalHabitatVolume = levelConfigs.reduce((sum, config) => sum + config.volume, 0); totalVolumeEl.textContent = `${totalHabitatVolume.toFixed(1)} m³`; pressurizedVolumeEl.textContent = `${(totalHabitatVolume - totalModuleVolume).toFixed(1)} m³`; modulesCountEl.textContent = internalModules.length; }
