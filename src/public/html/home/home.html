@@ -278,17 +278,14 @@
     </div>
 
     <script>
-        // Initialize Lucide icons
-        lucide.createIcons();
-        
-        // Handle button click to navigate
-        document.getElementById('startDesigning').addEventListener('click', function() {
-            // In a real app, you would use your router here
-            // For this example, we'll just show an alert
-            alert('Navigating to designer...');
-            // window.location.href = '/designer'; // Uncomment for actual navigation
-            window.location.href = '../forms/index.html';
-        });
-    </script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+    
+    // Handle button click to navigate
+    document.getElementById('startDesigning').addEventListener('click', function() {
+        // Redireciona direto para a página do formulário
+        window.location.href = '../forms/index.html';
+    });
+</script>
 </body>
 </html>
