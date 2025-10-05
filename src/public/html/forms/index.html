@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PureFlow - NASA Mission Designer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ==========================================================================
+       RESET & BASE CONFIGURATION
+       ========================================================================== */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      /* Space Palette - Deep Space Colors */
+      --space-void: #0a0a0f;
+      --space-deep: #0f0f1a;
+      --space-dark: #1a1a2e;
+      --space-medium: #16213e;
+      --space-blue: #0f3460;
+      
+      /* Cosmic Accents */
+      --nebula-purple: #6c5ce7;
+      --nebula-blue: #74b9ff;
+      --nebula-cyan: #00cec9;
+      --star-white: #ddd6fe;
+      --star-yellow: #fdcb6e;
+      --mars-red: #e84393;
+      --asteroid-gray: #636e72;
+      
+      /* Functional Colors */
+      --success-green: #00b894;
+      --warning-orange: #e17055;
+      --error-red: #d63031;
+      
+      /* Glass Effects */
+      --glass-bg: rgba(15, 15, 26, 0.75);
+      --glass-border: rgba(116, 185, 255, 0.15);
+      --card-bg: rgba(26, 26, 46, 0.85);
+      --card-border: rgba(116, 185, 255, 0.2);
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: var(--star-white);
+      overflow-x: hidden;
+      position: relative;
+    }
+    
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, 
+        rgba(10, 10, 15, 0.15) 0%, 
+        rgba(15, 15, 26, 0.1) 30%, 
+        rgba(26, 26, 46, 0.05) 70%, 
+        rgba(15, 33, 96, 0.1) 100%);
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        radial-gradient(circle at 20% 20%, var(--nebula-purple) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, var(--nebula-blue) 0%, transparent 50%),
+        radial-gradient(circle at 40% 90%, var(--nebula-cyan) 0%, transparent 50%);
+      opacity: 0.05;
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    /* ==========================================================================
+       GLASS MORPHISM SYSTEM
+       ========================================================================== */
+    .glass-card { 
+      background: rgba(15, 15, 26, 0.2);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(116, 185, 255, 0.3);
+      box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(116, 185, 255, 0.2),
+        0 0 60px rgba(116, 185, 255, 0.1);
+    }
+    
+    /* ==========================================================================
+       SELECTION CARDS SYSTEM
+       ========================================================================== */
+    .select-card { 
+      background: rgba(26, 26, 46, 0.25);
+      backdrop-filter: blur(8px);
+      border: 2px solid rgba(116, 185, 255, 0.4);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .select-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, var(--nebula-purple), var(--nebula-blue));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 0;
+    }
+    
+    .select-card:hover { 
+      border-color: var(--nebula-blue);
+      transform: translateY(-3px);
+      box-shadow: 
+        0 20px 40px rgba(116, 185, 255, 0.2),
+        0 0 20px rgba(116, 185, 255, 0.1);
+    }
+    
+    .select-card:hover::before {
+      opacity: 0.05;
+    }
+    
+    .select-card.selected { 
+      border-color: var(--nebula-purple);
+      background: rgba(108, 92, 231, 0.1);
+      box-shadow: 
+        0 0 30px rgba(108, 92, 231, 0.3),
+        inset 0 1px 0 rgba(108, 92, 231, 0.2);
+    }
+    
+    .select-card.selected::before {
+      opacity: 0.1;
+    }
+    
+    .select-card.selected::after {
+      content: '✓';
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      color: var(--star-white);
+      font-size: 14px;
+      font-weight: bold;
+      background: var(--nebula-purple);
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      box-shadow: 0 0 10px rgba(108, 92, 231, 0.5);
+    }
+    
+    /* ==========================================================================
+       INTERACTIVE ELEMENTS
+       ========================================================================== */
+    .info-compact {
+      display: none;
+      font-size: 12px;
+      opacity: 0;
+      max-height: 0;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      background: rgba(15, 15, 26, 0.4);
+      backdrop-filter: blur(8px);
+      border-radius: 8px;
+      padding: 0;
+      overflow: hidden;
+    }
+    
+    .select-card.selected .info-compact {
+      display: block;
+      opacity: 1;
+      max-height: 200px;
+      padding: 12px;
+      border: 1px solid rgba(116, 185, 255, 0.4);
+      box-shadow: inset 0 1px 0 rgba(116, 185, 255, 0.2);
+    }
+    
+    /* ==========================================================================
+       PROGRESS SYSTEM
+       ========================================================================== */
+    .progress-step {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--asteroid-gray);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      border: 2px solid transparent;
+    }
+    
+    .progress-step.active {
+      background: var(--nebula-purple);
+      box-shadow: 
+        0 0 15px rgba(108, 92, 231, 0.6),
+        0 0 25px rgba(108, 92, 231, 0.3);
+      border-color: var(--star-white);
+      transform: scale(1.2);
+    }
+    
+    .progress-step.completed {
+      background: var(--success-green);
+      box-shadow: 0 0 10px rgba(0, 184, 148, 0.4);
+    }
+    
+    .progress-step.completed::after {
+      content: '✓';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 10px;
+      font-weight: bold;
+    }
+    
+    /* ==========================================================================
+       ANIMATIONS
+       ========================================================================== */
+    .floating-element {
+      animation: float 4s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      25% { transform: translateY(-5px) rotate(1deg); }
+      50% { transform: translateY(-10px) rotate(0deg); }
+      75% { transform: translateY(-5px) rotate(-1deg); }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    
+    .pulse {
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    /* ==========================================================================
+       FORM CONTROLS
+       ========================================================================== */
+    .slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+      height: 6px;
+      border-radius: 3px;
+    }
+    
+    .slider-thumb::-webkit-slider-track {
+      background: linear-gradient(90deg, var(--space-blue), var(--nebula-cyan));
+      height: 6px;
+      border-radius: 3px;
+      border: 1px solid var(--card-border);
+    }
+    
+    .slider-thumb::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 24px;
+      width: 24px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--nebula-purple), var(--nebula-blue));
+      border: 2px solid var(--star-white);
+      cursor: pointer;
+      box-shadow: 
+        0 0 15px rgba(108, 92, 231, 0.5),
+        0 4px 8px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+    
+    .slider-thumb::-moz-range-track {
+      background: linear-gradient(90deg, var(--space-blue), var(--nebula-cyan));
+      height: 6px;
+      border-radius: 3px;
+      border: 1px solid var(--card-border);
+    }
+    
+    .slider-thumb::-moz-range-thumb {
+      height: 24px;
+      width: 24px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--nebula-purple), var(--nebula-blue));
+      border: 2px solid var(--star-white);
+      cursor: pointer;
+      box-shadow: 
+        0 0 15px rgba(108, 92, 231, 0.5),
+        0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* ==========================================================================
+       RESISTANCE BARS (Material Analysis)
+       ========================================================================== */
+    .resistance-bar {
+      height: 6px;
+      background: var(--space-medium);
+      border-radius: 3px;
+      overflow: hidden;
+      border: 1px solid var(--card-border);
+      position: relative;
+    }
+    
+    .resistance-bar::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      animation: shimmer 2s infinite;
+    }
+    
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    
+    .resistance-fill {
+      height: 100%;
+      transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      border-radius: 3px;
+    }
+    
+    /* ==========================================================================
+       LAYOUT SYSTEM
+       ========================================================================== */
+    .section-compact { 
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+    
+    .section-compact::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--nebula-blue), transparent);
+    }
+    
+    .grid-auto { 
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    
+    /* ==========================================================================
+       RESPONSIVE DESIGN
+       ========================================================================== */
+    @media (max-width: 768px) {
+      .grid-auto { 
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      .section-compact { 
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+      }
+      
+      .progress-step {
+        width: 12px;
+        height: 12px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .section-compact {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body class="text-white min-h-screen">
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <div class="glass-card rounded-3xl w-full max-w-5xl">
+      
+      <!-- Header with Progress -->
+      <div class="p-6 border-b border-gray-700/30">
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <h1 class="text-3xl font-light text-white mb-2">NASA Mission Designer</h1>
+            <p class="text-gray-300 text-sm font-light">Configure your space mission parameters</p>
+          </div>
+          <button id="backToHome" class="glass-card px-4 py-2 rounded-xl text-sm font-medium text-gray-300 hover:text-white transition-all hover:scale-105">
+            <i data-lucide="arrow-left" class="w-4 h-4 inline mr-2"></i>Back
+          </button>
+        </div>
+        
+        <!-- Progress Indicator (Compact) -->
+        <div class="flex items-center gap-2">
+          <div class="progress-step active"></div>
+          <div class="h-px bg-gray-600 flex-1"></div>
+          <div class="progress-step" id="step-2"></div>
+          <div class="h-px bg-gray-600 flex-1"></div>
+          <div class="progress-step" id="step-3"></div>
+        </div>
+      </div>
+    
+      <form id="expeditionForm" class="p-6 space-y-6">
+        
+        <!-- Mission Parameters (Compact) -->
+        <div class="section-compact glass-card rounded-2xl">
+          <h2 class="text-lg font-medium text-white mb-4 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(108, 92, 231, 0.2);">
+              <i data-lucide="users" class="w-4 h-4" style="color: #6c5ce7;"></i>
+            </div>
+            Mission Parameters
+          </h2>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-300">Crew Size</label>
+              <div class="relative">
+                <input type="number" name="passengers" id="crew-input" min="1" max="50" value="4" required 
+                       class="w-full px-3 py-2 pr-12 rounded-lg text-white focus:ring-2 focus:border-transparent text-center font-mono" 
+                       style="background: rgba(31, 41, 55, 0.3); backdrop-filter: blur(6px); border: 1px solid rgba(116, 185, 255, 0.4);">
+                <div class="absolute right-1 top-1/2 transform -translate-y-1/2 flex flex-col">
+                  <button type="button" id="crew-increase" class="w-8 h-4 flex items-center justify-center text-gray-300 hover:text-white transition-colors rounded-t" style="background: rgba(116, 185, 255, 0.2);">
+                    <i data-lucide="chevron-up" class="w-3 h-3"></i>
+                  </button>
+                  <button type="button" id="crew-decrease" class="w-8 h-4 flex items-center justify-center text-gray-300 hover:text-white transition-colors rounded-b" style="background: rgba(116, 185, 255, 0.2);">
+                    <i data-lucide="chevron-down" class="w-3 h-3"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="text-xs text-gray-400">Enter any number from 1 to 50 crew members</div>
+            </div>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <label class="text-sm font-medium text-gray-300">Mission Duration</label>
+                <span id="mission-duration-value" class="font-mono text-sm px-2 py-1 rounded" style="color: #6c5ce7; background: rgba(31, 41, 55, 0.3); backdrop-filter: blur(6px);">365 days (1.0 years)</span>
+              </div>
+              <div class="relative">
+                <input type="range" id="mission-duration" name="duration" min="90" max="1800" value="365" step="15" 
+                       class="w-full h-3 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                  <span>90 days</span>
+                  <span>1 year</span>
+                  <span>3 years</span>
+                  <span>5 years</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Destination Selection -->
+        <div class="section-compact glass-card rounded-2xl">
+          <h2 class="text-lg font-medium text-white mb-4 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(116, 185, 255, 0.2);">
+              <i data-lucide="target" class="w-4 h-4" style="color: #74b9ff;"></i>
+            </div>
+            Mission Destination
+          </h2>
+          <div id="destination-options" class="grid-auto">
+            <div class="select-card p-4 rounded-xl" data-value="Moon">
+              <div class="flex items-center gap-3 mb-2">
+                <i data-lucide="moon" class="w-6 h-6 text-blue-400"></i>
+                <div>
+                  <h3 class="font-semibold text-white">Moon</h3>
+                  <p class="text-xs text-gray-400">3 days • 1/6g • Water ice available</p>
+                </div>
+              </div>
+              <div class="info-compact mt-3 space-y-2">
+                <div class="grid grid-cols-3 gap-2 text-xs">
+                  <div class="text-center p-2 bg-red-500/20 rounded">
+                    <div class="text-red-400 font-semibold">Radiation</div>
+                    <div class="text-red-300">Extreme</div>
+                  </div>
+                  <div class="text-center p-2 bg-yellow-500/20 rounded">
+                    <div class="text-yellow-400 font-semibold">Resources</div>
+                    <div class="text-yellow-300">Limited</div>
+                  </div>
+                  <div class="text-center p-2 bg-green-500/20 rounded">
+                    <div class="text-green-400 font-semibold">Access</div>
+                    <div class="text-green-300">Easy</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="select-card p-4 rounded-xl" data-value="Mars">
+              <div class="flex items-center gap-3 mb-2">
+                <i data-lucide="map-pin" class="w-6 h-6 text-red-400"></i>
+                <div>
+                  <h3 class="font-semibold text-white">Mars</h3>
+                  <p class="text-xs text-gray-400">6-9 months • 1/3g • Rich resources</p>
+                </div>
+              </div>
+              <div class="info-compact mt-3 space-y-2">
+                <div class="grid grid-cols-3 gap-2 text-xs">
+                  <div class="text-center p-2 bg-orange-500/20 rounded">
+                    <div class="text-orange-400 font-semibold">Radiation</div>
+                    <div class="text-orange-300">High</div>
+                  </div>
+                  <div class="text-center p-2 bg-green-500/20 rounded">
+                    <div class="text-green-400 font-semibold">Resources</div>
+                    <div class="text-green-300">Abundant</div>
+                  </div>
+                  <div class="text-center p-2 bg-red-500/20 rounded">
+                    <div class="text-red-400 font-semibold">Access</div>
+                    <div class="text-red-300">Difficult</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="select-card p-4 rounded-xl" data-value="Orbit">
+              <div class="flex items-center gap-3 mb-2">
+                <i data-lucide="satellite" class="w-6 h-6 text-purple-400"></i>
+                <div>
+                  <h3 class="font-semibold text-white">Earth Orbit</h3>
+                  <p class="text-xs text-gray-400">Immediate • 0g • No local resources</p>
+                </div>
+              </div>
+              <div class="info-compact mt-3 space-y-2">
+                <div class="grid grid-cols-3 gap-2 text-xs">
+                  <div class="text-center p-2 bg-red-500/20 rounded">
+                    <div class="text-red-400 font-semibold">Radiation</div>
+                    <div class="text-red-300">Extreme</div>
+                  </div>
+                  <div class="text-center p-2 bg-red-500/20 rounded">
+                    <div class="text-red-400 font-semibold">Resources</div>
+                    <div class="text-red-300">None</div>
+                  </div>
+                  <div class="text-center p-2 bg-green-500/20 rounded">
+                    <div class="text-green-400 font-semibold">Access</div>
+                    <div class="text-green-300">Immediate</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <input type="hidden" name="destination" id="destination-input" required>
+        </div>
+
+        <!-- Transportation System -->
+        <div class="section-compact glass-card rounded-2xl">
+          <h2 class="text-lg font-medium text-white mb-4 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(253, 203, 110, 0.2);">
+              <i data-lucide="rocket" class="w-4 h-4" style="color: #fdcb6e;"></i>
+            </div>
+            Transportation System
+          </h2>
+          <div class="grid md:grid-cols-2 gap-3">
+            <label class="select-card p-4 rounded-xl cursor-pointer flex items-center gap-3">
+              <input type="radio" name="propulsion" value="chemical" checked class="sr-only">
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(116, 185, 255, 0.2);">
+                <i data-lucide="flame" class="w-5 h-5" style="color: #74b9ff;"></i>
+              </div>
+              <div class="flex-1">
+                <h4 class="font-medium text-white">Chemical Propulsion</h4>
+                <p class="text-xs text-gray-400 mt-1">Proven technology • Longer travel time</p>
+                <div class="mt-2 text-xs text-yellow-300">6-9 months to Mars</div>
+              </div>
+            </label>
+            
+            <label class="select-card p-4 rounded-xl cursor-pointer flex items-center gap-3">
+              <input type="radio" name="propulsion" value="nuclear" class="sr-only">
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(108, 92, 231, 0.2);">
+                <i data-lucide="zap" class="w-5 h-5" style="color: #6c5ce7;"></i>
+              </div>
+              <div class="flex-1">
+                <h4 class="font-medium text-white">Nuclear Thermal</h4>
+                <p class="text-xs text-gray-400 mt-1">2-3x more efficient • Faster travel</p>
+                <div class="mt-2 text-xs text-green-300">3-4 months to Mars</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Habitat Strategy -->
+        <div class="section-compact glass-card rounded-2xl">
+          <h2 class="text-lg font-medium text-white mb-4 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(0, 184, 148, 0.2);">
+              <i data-lucide="home" class="w-4 h-4" style="color: #00b894;"></i>
+            </div>
+            Habitat Strategy
+          </h2>
+          <div class="grid-auto">
+            <label class="select-card p-4 rounded-xl cursor-pointer">
+              <input type="radio" name="habitat_strategy" value="pre_fabricated" checked class="sr-only">
+              <div class="flex items-center gap-3 mb-2">
+                <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                  <i data-lucide="package" class="w-4 h-4 text-blue-400"></i>
+                </div>
+                <div>
+                  <h4 class="font-medium text-white">Pre-fabricated</h4>
+                  <p class="text-xs text-gray-400">Ready to use • High launch mass</p>
+                </div>
+              </div>
+              <div class="info-compact">
+                <div class="grid grid-cols-2 gap-2 text-xs mt-2">
+                  <div class="text-green-300">✓ Quick deployment</div>
+                  <div class="text-red-300">✗ Expensive launches</div>
+                </div>
+              </div>
+            </label>
+            
+            <label class="select-card p-4 rounded-xl cursor-pointer">
+              <input type="radio" name="habitat_strategy" value="inflatable" class="sr-only">
+              <div class="flex items-center gap-3 mb-2">
+                <div class="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                  <i data-lucide="maximize" class="w-4 h-4 text-purple-400"></i>
+                </div>
+                <div>
+                  <h4 class="font-medium text-white">Inflatable Modules</h4>
+                  <p class="text-xs text-gray-400">Large volume • Light weight</p>
+                </div>
+              </div>
+              <div class="info-compact">
+                <div class="grid grid-cols-2 gap-2 text-xs mt-2">
+                  <div class="text-green-300">✓ Best volume/mass</div>
+                  <div class="text-yellow-300">⚠ Complex setup</div>
+                </div>
+              </div>
+            </label>
+            
+            <label class="select-card p-4 rounded-xl cursor-pointer">
+              <input type="radio" name="habitat_strategy" value="isru_printed" class="sr-only">
+              <div class="flex items-center gap-3 mb-2">
+                <div class="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center">
+                  <i data-lucide="printer" class="w-4 h-4 text-orange-400"></i>
+                </div>
+                <div>
+                  <h4 class="font-medium text-white">3D Printed (ISRU)</h4>
+                  <p class="text-xs text-gray-400">Local materials • Zero launch mass</p>
+                </div>
+              </div>
+              <div class="info-compact">
+                <div class="grid grid-cols-2 gap-2 text-xs mt-2">
+                  <div class="text-green-300">✓ Best radiation shield</div>
+                  <div class="text-red-300">✗ Long construction</div>
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Habitat Materials -->
+        <div class="section-compact glass-card rounded-2xl">
+          <h2 class="text-lg font-medium text-white mb-4 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(0, 206, 201, 0.2);">
+              <i data-lucide="shield" class="w-4 h-4" style="color: #00cec9;"></i>
+            </div>
+            Structural Material
+          </h2>
+          <div class="grid-auto">
+            <label class="select-card p-4 rounded-xl cursor-pointer">
+              <input type="radio" name="habitat_material" value="aluminum" checked class="sr-only">
+              <div class="flex items-center justify-between mb-3">
+                <div>
+                  <h4 class="font-medium text-white">Aluminum Alloy</h4>
+                  <p class="text-xs text-gray-400">Standard aerospace material</p>
+                </div>
+                <div class="text-xs text-right">
+                  <div class="text-orange-300">Rad: 4/10</div>
+                  <div class="text-blue-300">Thermal: 7/10</div>
+                </div>     
+              </div>
+              <div class="info-compact">
+                <div class="space-y-2">
+                  <div class="flex gap-2">
+                    <div class="resistance-bar flex-1">
+                      <div class="resistance-fill bg-orange-400" style="width: 40%"></div>
+                    </div>
+                    <span class="text-xs text-gray-400 w-16">Radiation</span>
+                  </div>
+                  <div class="flex gap-2">
+                    <div class="resistance-bar flex-1">
+                      <div class="resistance-fill bg-blue-400" style="width: 70%"></div>
+                    </div>
+                    <span class="text-xs text-gray-400 w-16">Thermal</span>
+                  </div>
+                </div>
+              </div>
+            </label>
+            
+            <label class="select-card p-4 rounded-xl cursor-pointer">
+              <input type="radio" name="habitat_material" value="regolith_3d" class="sr-only">
+              <div class="flex items-center justify-between mb-3">
+                <div>
+                  <h4 class="font-medium text-white">3D Printed Regolith</h4>
+                  <p class="text-xs text-gray-400">Local soil material</p>
+                </div>
+                <div class="text-xs text-right">
+                  <div class="text-green-300">Rad: 10/10</div>
+                  <div class="text-blue-300">Thermal: 9/10</div>
+                </div>
+              </div>
+              <div class="info-compact">
+                <div class="space-y-2">
+                  <div class="flex gap-2">
+                    <div class="resistance-bar flex-1">
+                      <div class="resistance-fill bg-green-400" style="width: 100%"></div>
+                    </div>
+                    <span class="text-xs text-gray-400 w-16">Radiation</span>
+                  </div>
+                  <div class="flex gap-2">
+                    <div class="resistance-bar flex-1">
+                      <div class="resistance-fill bg-blue-400" style="width: 90%"></div>
+                    </div>
+                    <span class="text-xs text-gray-400 w-16">Thermal</span>
+                  </div>
+                </div>
+              </div>
+            </label>
+            
+            <label class="select-card p-4 rounded-xl cursor-pointer">
+              <input type="radio" name="habitat_material" value="polyethylene" class="sr-only">
+              <div class="flex items-center justify-between mb-3">
+                <div>
+                  <h4 class="font-medium text-white">Polyethylene</h4>
+                  <p class="text-xs text-gray-400">Hydrogen-rich plastic</p>
+                </div>
+                <div class="text-xs text-right">
+                  <div class="text-green-300">Rad: 9/10</div>
+                  <div class="text-yellow-300">Thermal: 5/10</div>
+                </div>
+              </div>
+              <div class="info-compact">
+                <div class="space-y-2">
+                  <div class="flex gap-2">
+                    <div class="resistance-bar flex-1">
+                      <div class="resistance-fill bg-green-400" style="width: 90%"></div>
+                    </div>
+                    <span class="text-xs text-gray-400 w-16">Radiation</span>
+                  </div>
+                  <div class="flex gap-2">
+                    <div class="resistance-bar flex-1">
+                      <div class="resistance-fill bg-yellow-400" style="width: 50%"></div>
+                    </div>
+                    <span class="text-xs text-gray-400 w-16">Thermal</span>
+                  </div>
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Solar Storm Protection -->
+        <div class="section-compact glass-card rounded-2xl border border-red-500/20">
+          <h2 class="text-lg font-medium text-white mb-4 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(232, 67, 147, 0.2);">
+              <i data-lucide="shield-alert" class="w-4 h-4" style="color: #e84393;"></i>
+            </div>
+            Solar Storm Protection
+          </h2>
+          <div class="mb-4">
+            <label class="flex items-start gap-3 cursor-pointer">
+              <input type="checkbox" name="storm_shelter" value="true" class="mt-1">
+              <div>
+                <h4 class="font-medium text-white">Emergency Storm Shelter</h4>
+                <p class="text-sm text-gray-400 mt-1">Additional shielding for solar radiation events</p>
+              </div>
+            </label>
+          </div>
+          <div id="shelter-options" class="hidden space-y-2">
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+              <input type="radio" name="shelter_type" value="water_walls">
+              <span class="text-gray-300">Water walls (dual-purpose resource)</span>
+            </label>
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+              <input type="radio" name="shelter_type" value="polyethylene_layers">
+              <span class="text-gray-300">Polyethylene layers (lightweight)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Mission Cost Analysis -->
+        <div class="section-compact glass-card rounded-2xl border border-green-500/20">
+          <h2 class="text-lg font-medium text-white mb-4 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(0, 184, 148, 0.2);">
+              <i data-lucide="dollar-sign" class="w-4 h-4" style="color: #00b894;"></i>
+            </div>
+            Mission Cost Analysis
+          </h2>
+          
+          <div id="cost-breakdown" class="space-y-4">
+            <!-- Launch Costs -->
+            <div class="p-4 rounded-lg" style="background: rgba(31, 41, 55, 0.2); backdrop-filter: blur(6px); border: 1px solid rgba(116, 185, 255, 0.2);">
+              <h3 class="font-medium text-green-300 mb-3 flex items-center gap-2">
+                <i data-lucide="rocket" class="w-4 h-4"></i>
+                Launch & Transportation
+              </h3>
+              <div class="grid grid-cols-2 gap-4 text-sm">
+                <div class="space-y-2">
+                  <div class="flex justify-between">
+                    <span class="text-gray-300">Launch vehicles:</span>
+                    <span id="launch-count" class="text-white font-mono">5-8 launches</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-300">Payload mass:</span>
+                    <span id="payload-mass" class="text-white font-mono">~150 tons</span>
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex justify-between">
+                    <span class="text-gray-300">Propulsion cost:</span>
+                    <span id="propulsion-cost" class="text-green-300 font-mono">$2.5B</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-300">Launch cost:</span>
+                    <span id="launch-cost" class="text-green-300 font-mono">$1.2B</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Habitat Costs -->
+            <div class="p-4 rounded-lg" style="background: rgba(31, 41, 55, 0.2); backdrop-filter: blur(6px); border: 1px solid rgba(116, 185, 255, 0.2);">
+              <h3 class="font-medium text-blue-300 mb-3 flex items-center gap-2">
+                <i data-lucide="home" class="w-4 h-4"></i>
+                Habitat & Life Support
+              </h3>
+              <div class="grid grid-cols-2 gap-4 text-sm">
+                <div class="space-y-2">
+                  <div class="flex justify-between">
+                    <span class="text-gray-300">Habitat modules:</span>
+                    <span id="habitat-cost" class="text-blue-300 font-mono">$800M</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-300">Life support:</span>
+                    <span id="life-support-cost" class="text-blue-300 font-mono">$400M</span>
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex justify-between">
+                    <span class="text-gray-300">Per crew member:</span>
+                    <span id="per-crew-cost" class="text-blue-300 font-mono">$50M</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-300">Construction:</span>
+                    <span id="construction-cost" class="text-blue-300 font-mono">$300M</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Operations & Contingency -->
+            <div class="p-4 rounded-lg" style="background: rgba(31, 41, 55, 0.2); backdrop-filter: blur(6px); border: 1px solid rgba(116, 185, 255, 0.2);">
+              <h3 class="font-medium text-orange-300 mb-3 flex items-center gap-2">
+                <i data-lucide="settings" class="w-4 h-4"></i>
+                Operations & Contingency
+              </h3>
+              <div class="grid grid-cols-2 gap-4 text-sm">
+                <div class="space-y-2">
+                  <div class="flex justify-between">
+                    <span class="text-gray-300">Mission ops/year:</span>
+                    <span id="ops-cost" class="text-orange-300 font-mono">$200M</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-300">R&D costs:</span>
+                    <span id="rd-cost" class="text-orange-300 font-mono">$2.0B</span>
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex justify-between">
+                    <span class="text-gray-300">Contingency (20%):</span>
+                    <span id="contingency-cost" class="text-orange-300 font-mono">$1.5B</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-300">Insurance:</span>
+                    <span id="insurance-cost" class="text-orange-300 font-mono">$500M</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Total Cost -->
+            <div class="p-4 rounded-lg" style="background: linear-gradient(135deg, rgba(108, 92, 231, 0.15), rgba(116, 185, 255, 0.1)); backdrop-filter: blur(8px); border: 1px solid rgba(108, 92, 231, 0.5);">
+              <div class="flex justify-between items-center">
+                <h3 class="font-semibold text-white text-lg">Total Mission Cost</h3>
+                <span id="total-cost" class="text-2xl font-bold text-indigo-300 font-mono">$8.9B</span>
+              </div>
+              <div class="mt-2 text-sm text-gray-300">
+                Cost per crew member: <span id="cost-per-crew" class="text-indigo-300 font-mono">$2.2B</span>
+              </div>
+              <div class="mt-1 text-xs text-gray-400">
+                *Based on real NASA data: Artemis ($93B), SLS ($4.1B/launch), ISS ops ($150M/year)
+              </div>
+              <div class="mt-1 text-xs text-gray-500">
+                Includes: R&D, launches, hardware, operations, 25% contingency, insurance
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Generate Mission -->
+        <div class="section-compact">
+          <button type="submit" class="w-full glass-card text-white font-medium py-4 px-6 rounded-2xl transition-all duration-300 flex items-center justify-center gap-3 group relative overflow-hidden" 
+                  style="background: linear-gradient(135deg, rgba(108, 92, 231, 0.2), rgba(116, 185, 255, 0.2)); border: 1px solid rgba(108, 92, 231, 0.3);" 
+                  onmouseover="this.style.background='linear-gradient(135deg, rgba(108, 92, 231, 0.3), rgba(116, 185, 255, 0.3))';" 
+                  onmouseout="this.style.background='linear-gradient(135deg, rgba(108, 92, 231, 0.2), rgba(116, 185, 255, 0.2));'">
+            <div class="floating-element">
+              <i data-lucide="rocket" class="w-5 h-5" style="color: #6c5ce7;"></i>
+            </div>
+            <span class="text-lg font-semibold">Generate Mission Profile</span>
+            <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform" style="color: #74b9ff;"></i>
+          </button>
+        </div>
+    </form>
+  </div>
+
+  <script>
+    // Initialize icons
+    lucide.createIcons();
+    
+    // DOM elements
+    const form = document.getElementById('expeditionForm');
+    const durationSlider = document.getElementById('mission-duration');
+    const durationValue = document.getElementById('mission-duration-value');
+    const destinationOptions = document.getElementById('destination-options');
+    const destinationInput = document.getElementById('destination-input');
+    const stormShelterCheckbox = document.querySelector('input[name="storm_shelter"]');
+    const shelterOptions = document.getElementById('shelter-options');
+    const progressSteps = document.querySelectorAll('.progress-step');
+    const crewInput = document.getElementById('crew-input');
+    const crewIncrease = document.getElementById('crew-increase');
+    const crewDecrease = document.getElementById('crew-decrease');
+
+    // Destination selection handler
+    destinationOptions.addEventListener('click', (e) => {
+      const card = e.target.closest('.select-card');
+      if (!card || !card.hasAttribute('data-value')) return;
+      
+      // Update destination value
+      const value = card.getAttribute('data-value');
+      destinationInput.value = value;
+      
+      // Update visual selection
+      destinationOptions.querySelectorAll('.select-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      
+      updateProgress();
+      updateCostAnalysis();
+    });
+
+    // Radio button selections handler
+    document.querySelectorAll('.select-card').forEach(card => {
+      const radio = card.querySelector('input[type="radio"]');
+      if (radio) {
+        card.addEventListener('click', (e) => {
+          e.preventDefault();
+          radio.checked = true;
+          
+          // Update visual selection within the same section
+          const section = card.closest('.section-compact');
+          if (section) {
+            section.querySelectorAll('.select-card').forEach(c => c.classList.remove('selected'));
+          }
+          card.classList.add('selected');
+          
+          updateProgress();
+          updateCostAnalysis();
+        });
+      }
+    });
+
+    // Set default selections
+    function setDefaults() {
+      // Default destination: Mars
+      const marsCard = document.querySelector('.select-card[data-value="Mars"]');
+      if (marsCard) {
+        marsCard.classList.add('selected');
+        destinationInput.value = 'Mars';
+      }
+
+      // Default propulsion: chemical (ensure radio is checked)
+      const chemicalRadio = document.querySelector('input[value="chemical"]');
+      const chemicalCard = chemicalRadio?.closest('.select-card');
+      if (chemicalRadio && chemicalCard) {
+        chemicalRadio.checked = true;
+        chemicalCard.classList.add('selected');
+      }
+
+      // Default habitat: pre-fabricated
+      const prefabRadio = document.querySelector('input[value="pre_fabricated"]');
+      const prefabCard = prefabRadio?.closest('.select-card');
+      if (prefabRadio && prefabCard) {
+        prefabRadio.checked = true;
+        prefabCard.classList.add('selected');
+      }
+
+      // Default material: aluminum
+      const aluminumRadio = document.querySelector('input[value="aluminum"]');
+      const aluminumCard = aluminumRadio?.closest('.select-card');
+      if (aluminumRadio && aluminumCard) {
+        aluminumRadio.checked = true;
+        aluminumCard.classList.add('selected');
+      }
+    }
+
+    // Duration slider with smooth animation
+    durationSlider.addEventListener('input', (e) => {
+      const value = parseInt(e.target.value);
+      const years = (value / 365).toFixed(1);
+      durationValue.textContent = `${value} days (${years} years)`;
+      updateProgress();
+      updateCostAnalysis();
+    });
+
+    // Cost analysis function with REAL NASA data
+    function updateCostAnalysis() {
+      const crew = parseInt(document.querySelector('[name="passengers"]').value) || 4;
+      const duration = parseInt(durationSlider.value) || 365;
+      const destination = destinationInput.value || 'Mars';
+      const propulsion = document.querySelector('input[name="propulsion"]:checked')?.value || 'chemical';
+      const habitat = document.querySelector('input[name="habitat_strategy"]:checked')?.value || 'pre_fabricated';
+      const material = document.querySelector('input[name="habitat_material"]:checked')?.value || 'aluminum';
+      
+      // REAL NASA COSTS (2024 USD, inflation-adjusted)
+      // Based on Artemis Program, SLS, Orion, and Mars mission studies
+      
+      let launchCost = 0;
+      let habitatCost = 0;
+      let lifeSupportCost = 0;
+      let rdCost = 0;
+      let opsCost = 0;
+      
+      // Launch costs based on real NASA data
+      // SLS cost: $4.1B per launch, Falcon Heavy: $150M, Starship (target): $50M
+      if (destination === 'Orbit') {
+        launchCost = Math.ceil(crew / 7) * 150; // Falcon Heavy equivalent
+        rdCost = 800; // ISS-level R&D
+        habitatCost = crew * 50; // Space station modules cost ~$50M per crew
+        lifeSupportCost = crew * 25; // ECLSS cost per crew
+        opsCost = (duration / 365) * 150; // ISS operations ~$150M/year
+      } else if (destination === 'Moon') {
+        // Artemis Program real costs
+        launchCost = Math.ceil(crew / 4) * 4100; // SLS launches at $4.1B each
+        rdCost = 6500; // Artemis R&D costs (real)
+        habitatCost = crew * 200; // Lunar Gateway/Base modules
+        lifeSupportCost = crew * 75; // Advanced ECLSS for lunar
+        opsCost = (duration / 365) * 400; // Lunar operations
+      } else { // Mars
+        // Mars mission estimates from NASA studies
+        launchCost = Math.ceil(crew / 4) * 2500; // Starship/SLS hybrid approach
+        rdCost = 15000; // Mars mission R&D (NASA estimates 2020-2024)
+        habitatCost = crew * 300; // Mars habitat modules
+        lifeSupportCost = crew * 100; // Closed-loop life support
+        opsCost = (duration / 365) * 500; // Mars operations
+      }
+      
+      // Propulsion system adjustments (real data)
+      if (propulsion === 'nuclear') {
+        if (destination === 'Mars') {
+          launchCost *= 0.65; // Nuclear thermal reduces propellant mass
+          rdCost += 3000; // Nuclear propulsion R&D (NASA NERVA estimates)
+        }
+      }
+      
+      // Habitat strategy adjustments (NASA studies)
+      if (habitat === 'inflatable') {
+        habitatCost *= 0.4; // Bigelow/NASA inflatable studies
+        launchCost *= 0.7; // Reduced launch mass
+      } else if (habitat === 'isru_printed') {
+        habitatCost *= 0.15; // 85% cost reduction using local materials
+        launchCost *= 0.3; // Minimal launch requirements
+        rdCost += 2000; // ISRU technology development
+      }
+      
+      // Material cost adjustments (engineering estimates)
+      if (material === 'regolith_3d') {
+        habitatCost *= 0.1; // 90% cost reduction for local materials
+      } else if (material === 'polyethylene') {
+        habitatCost *= 1.3; // Specialized radiation shielding
+        lifeSupportCost *= 1.1; // Enhanced life support integration
+      }
+      
+      // Scale factors for crew size (non-linear)
+      const crewFactor = Math.pow(crew / 4, 0.8); // Economics of scale
+      habitatCost *= crewFactor;
+      lifeSupportCost *= crewFactor;
+      
+      // Total mission cost calculation
+      const totalBeforeContingency = launchCost + habitatCost + lifeSupportCost + rdCost + opsCost;
+      const contingency = totalBeforeContingency * 0.25; // NASA uses 25% for new missions
+      const insurance = totalBeforeContingency * 0.03; // Government mission insurance
+      const totalCost = totalBeforeContingency + contingency + insurance;
+      
+      // Calculate launches needed (realistic)
+      let launchesNeeded = 0;
+      if (destination === 'Orbit') {
+        launchesNeeded = Math.ceil(crew / 7) + Math.ceil((habitatCost / 100) / 22); // Falcon Heavy payload
+      } else if (destination === 'Moon') {
+        launchesNeeded = Math.ceil(crew / 4) + Math.ceil((habitatCost / 100) / 26); // SLS payload
+      } else { // Mars
+        launchesNeeded = Math.ceil(crew / 6) + Math.ceil((habitatCost / 100) / 100); // Starship payload
+      }
+      
+      // Update UI with real costs
+      document.getElementById('launch-count').textContent = launchesNeeded + ' launches';
+      document.getElementById('payload-mass').textContent = '~' + Math.round(crew * 15 + (habitatCost / 100) * 5) + ' tons';
+      document.getElementById('propulsion-cost').textContent = '$' + (launchCost * 0.7 / 1000).toFixed(1) + 'B';
+      document.getElementById('launch-cost').textContent = '$' + (launchCost * 0.3 / 1000).toFixed(1) + 'B';
+      document.getElementById('habitat-cost').textContent = '$' + Math.round(habitatCost) + 'M';
+      document.getElementById('life-support-cost').textContent = '$' + Math.round(lifeSupportCost) + 'M';
+      document.getElementById('per-crew-cost').textContent = '$' + Math.round(lifeSupportCost / crew) + 'M';
+      document.getElementById('construction-cost').textContent = '$' + Math.round(habitatCost * 0.4) + 'M';
+      document.getElementById('ops-cost').textContent = '$' + Math.round(opsCost) + 'M/year';
+      document.getElementById('rd-cost').textContent = '$' + (rdCost / 1000).toFixed(1) + 'B';
+      document.getElementById('contingency-cost').textContent = '$' + (contingency / 1000).toFixed(1) + 'B';
+      document.getElementById('insurance-cost').textContent = '$' + Math.round(insurance) + 'M';
+      document.getElementById('total-cost').textContent = '$' + (totalCost / 1000).toFixed(1) + 'B';
+      document.getElementById('cost-per-crew').textContent = '$' + (totalCost / crew / 1000).toFixed(2) + 'B';
+    }
+
+    // Storm shelter toggle
+    stormShelterCheckbox.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        shelterOptions.classList.remove('hidden');
+        // Auto-select water walls as default
+        const waterWalls = shelterOptions.querySelector('input[value="water_walls"]');
+        if (waterWalls) waterWalls.checked = true;
+      } else {
+        shelterOptions.classList.add('hidden');
+        shelterOptions.querySelectorAll('input').forEach(input => input.checked = false);
+      }
+    });
+
+    // Progress tracking
+    function updateProgress() {
+      let completedSteps = 0;
+      
+      // Check if destination is selected
+      if (destinationInput.value && destinationInput.value.trim() !== '') {
+        completedSteps++;
+      }
+      
+      // Check if all systems are selected
+      const requiredSelections = ['propulsion', 'habitat_strategy', 'habitat_material'];
+      const selectedCount = requiredSelections.filter(name => 
+        document.querySelector(`input[name="${name}"]:checked`)
+      ).length;
+      
+      if (selectedCount === requiredSelections.length) {
+        completedSteps++;
+      }
+      
+      // Check if duration and crew are customized (optional step)
+      const crewChanged = document.querySelector('[name="passengers"]').value !== '4';
+      const durationChanged = durationSlider.value !== '365';
+      if (crewChanged || durationChanged) {
+        completedSteps++;
+      }
+
+      // Update progress indicators
+      progressSteps.forEach((step, index) => {
+        step.classList.remove('active', 'completed');
+        if (index < completedSteps) {
+          step.classList.add('completed');
+        } else if (index === completedSteps) {
+          step.classList.add('active');
+        }
+      });
+    }
+
+    // Form submission with validation and smooth transition
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // Validate required fields
+      if (!destinationInput.value) {
+        showNotification('Please select a destination', 'error');
+        return;
+      }
+
+      const requiredFields = ['propulsion', 'habitat_strategy', 'habitat_material'];
+      for (const field of requiredFields) {
+        if (!document.querySelector(`input[name="${field}"]:checked`)) {
+          showNotification(`Please select a ${field.replace('_', ' ')}`, 'error');
+          return;
+        }
+      }
+
+      // Collect form data
+      const formData = new FormData(form);
+      const missionData = Object.fromEntries(formData.entries());
+      
+      // Add metadata
+      missionData.timestamp = new Date().toISOString();
+      missionData.version = '3.0';
+      missionData.generated_by = 'NASA PureFlow Mission Designer';
+      
+      // Store and redirect
+      localStorage.setItem('missionProfile', JSON.stringify(missionData));
+      
+      // Show success and redirect to technical analysis
+      showNotification('Mission profile generated successfully!', 'success');
+      
+      setTimeout(() => {
+        window.location.href = './technical-analysis.html';
+      }, 1000);
+    });
+
+    // Notification system
+    function showNotification(message, type = 'info') {
+      const notification = document.createElement('div');
+      notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full ${
+        type === 'error' ? 'bg-red-500/90' : 
+        type === 'success' ? 'bg-green-500/90' : 'bg-blue-500/90'
+      } text-white backdrop-blur-sm`;
+      notification.textContent = message;
+      
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+      }, 100);
+      
+      setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => notification.remove(), 300);
+      }, 3000);
+    }
+
+    // Back button
+    document.getElementById('backToHome').addEventListener('click', () => {
+      window.location.href = '../home/home.html';
+    });
+
+    // Crew size controls
+    crewIncrease.addEventListener('click', () => {
+      const currentValue = parseInt(crewInput.value);
+      if (currentValue < 50) {
+        crewInput.value = currentValue + 1;
+        updateCostAnalysis();
+        updateProgress();
+      }
+    });
+    
+    crewDecrease.addEventListener('click', () => {
+      const currentValue = parseInt(crewInput.value);
+      if (currentValue > 1) {
+        crewInput.value = currentValue - 1;
+        updateCostAnalysis();
+        updateProgress();
+      }
+    });
+    
+    // Add change listeners for cost updates
+    crewInput.addEventListener('change', () => {
+      // Validate input range
+      const value = parseInt(crewInput.value);
+      if (value < 1) crewInput.value = 1;
+      if (value > 50) crewInput.value = 50;
+      updateCostAnalysis();
+      updateProgress();
+    });
+    
+    // Initialize
+    setDefaults();
+    updateProgress();
+    updateCostAnalysis();
+    
+    // Refresh icons periodically for dynamic content
+    setInterval(() => {
+      lucide.createIcons();
+    }, 1000);
+  </script>
+</body>
+</html>

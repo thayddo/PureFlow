@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <        <h2 class="text-xl font-semibold mb-4 border-b pb-2 flex items-center gap-2" style="border-color: rgba(116, 185, 255, 0.3);">
+        <i data-lucide="shield-check" class="w-5 h-5" style="color: var(--nebula-cyan);"></i>
+        Survival Analysis Summary
+      </h2>e>PureFlow - Final Mission Briefing</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <link href="https://fonts.g    // Export & Share functionality - prepared for future expansion
+    document.getElementById('exportShare').addEventListener('click', () => {
+      // TODO: Choose implementation approach:
+      
+      // Option 1: Navigate to dedicated export page (READY TO USE)
+      window.location.href = './export-share.html';
+      
+      // Option 2: Show development notice (comment out line above and uncomment below)
+      // alert('Export & Share feature coming soon! This will allow you to:\\n\\n• Export mission reports as PDF\\n• Share missions with team members\\n• Generate data visualizations\\n• Integrate with external systems');
+      
+      // Option 3: Open modal/popup for quick export (future implementation)
+      // openExportModal();
+    });?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Space Palette */
+      --space-void: #0a0a0f;
+      --space-deep: #0f0f1a;
+      --nebula-purple: #6c5ce7;
+      --nebula-blue: #74b9ff;
+      --nebula-cyan: #00cec9;
+      --star-white: #ddd6fe;
+      --success-green: #00b894;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: var(--star-white);
+      position: relative;
+    }
+    
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, 
+        rgba(10, 10, 15, 0.3) 0%, 
+        rgba(15, 15, 26, 0.2) 30%, 
+        rgba(26, 26, 46, 0.1) 70%, 
+        rgba(15, 33, 96, 0.2) 100%);
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    .card-bg { 
+      background: rgba(15, 15, 26, 0.2);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(116, 185, 255, 0.3);
+      box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(116, 185, 255, 0.2),
+        0 0 60px rgba(116, 185, 255, 0.1);
+    }
+    
+    .mission-status {
+      background: linear-gradient(135deg, rgba(0, 184, 148, 0.15), rgba(0, 206, 201, 0.1));
+      border: 1px solid rgba(0, 184, 148, 0.4);
+      backdrop-filter: blur(15px);
+      box-shadow: 0 8px 32px rgba(0, 184, 148, 0.2);
+    }
+    
+    .gradient-card {
+      background: linear-gradient(135deg, rgba(108, 92, 231, 0.1), rgba(116, 185, 255, 0.05));
+      border: 1px solid rgba(108, 92, 231, 0.3);
+      backdrop-filter: blur(12px);
+    }
+    
+    .print-hidden { display: none; }
+    
+    @media print {
+      .no-print { display: none !important; }
+      .print-hidden { display: block !important; }
+      body { background: white !important; color: black !important; }
+      .card-bg { background: white !important; color: black !important; }
+    }
+  </style>
+</head>
+<body class="text-white min-h-screen p-4">
+  <div class="max-w-6xl mx-auto">
+    
+    <!-- HEADER -->
+    <div class="card-bg p-6 rounded-2xl shadow-2xl mb-6">
+      <div class="flex justify-between items-center">
+        <div>
+          <h1 class="text-3xl font-bold mb-2" style="color: var(--nebula-purple);">Final Mission Briefing</h1>
+          <p class="text-gray-300" id="mission-overview">Complete Technical Report</p>
+          <p class="text-sm text-gray-400 mt-1" id="generated-time"></p>
+        </div>
+        <div class="flex gap-3 no-print">
+          <button id="backToAnalysis" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Back
+          </button>
+          <button id="startSimulation" class="text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center gap-2" style="background: linear-gradient(135deg, var(--nebula-cyan), var(--nebula-blue)); box-shadow: 0 8px 32px rgba(0, 206, 201, 0.3);">
+            <i data-lucide="play-circle" class="w-5 h-5"></i> Start Simulation
+          </button>
+          <button id="newMission" class="text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2" style="background: linear-gradient(135deg, var(--nebula-purple), var(--nebula-blue));">
+            New Mission <i data-lucide="plus" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MISSION STATUS OVERVIEW -->
+    <div class="mission-status p-6 rounded-2xl shadow-2xl mb-6">
+      <div class="flex items-center gap-4 mb-4">
+        <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+          <i data-lucide="check" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold" style="color: var(--success-green);">Mission Profile Approved</h2>
+          <p style="color: rgba(0, 184, 148, 0.8);">Technical configuration validated and ready for implementation</p>
+        </div>
+      </div>
+      <div class="grid md:grid-cols-4 gap-4 text-center" id="mission-stats">
+        <!-- Stats will be populated by JavaScript -->
+      </div>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-6">
+      
+      <!-- MISSION PARAMETERS -->
+      <div class="card-bg p-6 rounded-2xl shadow-2xl">
+        <h2 class="text-xl font-semibold mb-4 border-b border-gray-600 pb-2 flex items-center gap-2">
+          <i data-lucide="settings" class="w-5 h-5 text-indigo-400"></i>
+          Mission Parameters
+        </h2>
+        <div id="mission-parameters" class="space-y-4">
+          <!-- Content will be populated by JavaScript -->
+        </div>
+      </div>
+
+      <!-- TECHNICAL SPECIFICATIONS -->
+      <div class="card-bg p-6 rounded-2xl shadow-2xl">
+        <h2 class="text-xl font-semibold mb-4 border-b pb-2 flex items-center gap-2" style="border-color: rgba(116, 185, 255, 0.3);">
+          <i data-lucide="cpu" class="w-5 h-5" style="color: var(--nebula-blue);"></i>
+          Technical Specifications
+        </h2>
+        <div id="technical-specs" class="space-y-4">
+          <!-- Content will be populated by JavaScript -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SURVIVAL ANALYSIS SUMMARY -->
+    <div class="card-bg p-6 rounded-2xl shadow-2xl mt-6">
+      <h2 class="text-xl font-semibold mb-4 border-b border-gray-600 pb-2 flex items-center gap-2">
+        <i data-lucide="shield-check" class="w-5 h-5 text-indigo-400"></i>
+        Resumo da Análise de Sobrevivência
+      </h2>
+      <div id="survival-summary" class="grid md:grid-cols-3 gap-6">
+        <!-- Content will be populated by JavaScript -->
+      </div>
+    </div>
+
+    <!-- RESOURCE REQUIREMENTS -->
+    <div class="card-bg p-6 rounded-2xl shadow-2xl mt-6">
+      <h2 class="text-xl font-semibold mb-4 border-b pb-2 flex items-center gap-2" style="border-color: rgba(116, 185, 255, 0.3);">
+        <i data-lucide="package" class="w-5 h-5" style="color: var(--star-white);"></i>
+        Resource Requirements
+      </h2>
+      <div id="resource-requirements" class="space-y-4">
+        <!-- Content will be populated by JavaScript -->
+      </div>
+    </div>
+
+    <!-- MISSION TIMELINE -->
+    <div class="card-bg p-6 rounded-2xl shadow-2xl mt-6">
+      <h2 class="text-xl font-semibold mb-4 border-b pb-2 flex items-center gap-2" style="border-color: rgba(116, 185, 255, 0.3);">
+        <i data-lucide="calendar" class="w-5 h-5" style="color: var(--nebula-purple);"></i>
+        Mission Timeline
+      </h2>
+      <div id="mission-timeline" class="space-y-4">
+        <!-- Content will be populated by JavaScript -->
+      </div>
+    </div>
+
+    <!-- RISK ASSESSMENT -->
+    <div class="card-bg p-6 rounded-2xl shadow-2xl mt-6 mb-8">
+      <h2 class="text-xl font-semibold mb-4 border-b pb-2 flex items-center gap-2" style="border-color: rgba(116, 185, 255, 0.3);">
+        <i data-lucide="alert-triangle" class="w-5 h-5 text-yellow-400"></i>
+        Risk Assessment & Contingencies
+      </h2>
+      <div id="risk-assessment" class="space-y-4">
+        <!-- Content will be populated by JavaScript -->
+      </div>
+    </div>
+
+    <!-- HIDDEN PRINT CONTENT -->
+    <div class="print-hidden">
+      <div style="page-break-before: always;"></div>
+      <h1>PureFlow Mission Briefing - Technical Report</h1>
+      <p>Generated on: <span id="print-date"></span></p>
+    </div>
+
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    let missionData = {};
+    
+    const destinationData = {
+      'Orbit': { name: 'Earth Orbit', travelTime: '0 days', gravity: '0g', distance: 'LEO' },
+      'Moon': { name: 'Moon', travelTime: '3 days', gravity: '1/6g', distance: '384,400 km' },
+      'Mars': { name: 'Mars', travelTime: '6-9 months', gravity: '1/3g', distance: '225M km' }
+    };
+
+    function loadMissionData() {
+      const stored = localStorage.getItem('missionProfile');
+      if (stored) {
+        missionData = JSON.parse(stored);
+        generateBriefing();
+      } else {
+        document.getElementById('mission-overview').textContent = 'Error: Mission data not found.';
+      }
+    }
+
+    function generateBriefing() {
+      updateHeader();
+      generateMissionStats();
+      generateMissionParameters();
+      generateTechnicalSpecs();
+      generateSurvivalSummary();
+      generateResourceRequirements();
+      generateMissionTimeline();
+      generateRiskAssessment();
+    }
+
+    function updateHeader() {
+      const dest = destinationData[missionData.destination];
+      document.getElementById('mission-overview').innerHTML = 
+        `${dest?.name || missionData.destination} Mission • ${missionData.passengers} Crew Members • ${missionData.duration} Days`;
+      
+      const now = new Date();
+      document.getElementById('generated-time').textContent = 
+        `Generated on: ${now.toLocaleDateString('en-US')} at ${now.toLocaleTimeString('en-US')}`;
+      document.getElementById('print-date').textContent = now.toLocaleString('en-US');
+    }
+
+    function generateMissionStats() {
+      const dest = destinationData[missionData.destination];
+      const propulsionTime = missionData.propulsion === 'nuclear' && missionData.destination === 'Mars' ? '3-4 meses' : dest?.travelTime || 'N/A';
+      
+      const statsHtml = `
+        <div class="bg-green-800/30 p-4 rounded-lg">
+          <div class="text-2xl font-bold text-green-300">${missionData.passengers}</div>
+          <div class="text-sm text-green-200">Crew Members</div>
+        </div>
+        <div class="bg-blue-800/30 p-4 rounded-lg">
+          <div class="text-2xl font-bold text-blue-300">${missionData.duration}</div>
+          <div class="text-sm text-blue-200">Mission Days</div>
+        </div>
+        <div class="bg-purple-800/30 p-4 rounded-lg">
+          <div class="text-2xl font-bold text-purple-300">${propulsionTime}</div>
+          <div class="text-sm text-purple-200">Travel Time</div>
+        </div>
+        <div class="bg-orange-800/30 p-4 rounded-lg">
+          <div class="text-2xl font-bold text-orange-300">${dest?.gravity || 'N/A'}</div>
+          <div class="text-sm text-orange-200">Local Gravity</div>
+        </div>
+      `;
+      
+      document.getElementById('mission-stats').innerHTML = statsHtml;
+    }
+
+    function generateMissionParameters() {
+      const dest = destinationData[missionData.destination];
+      
+      const parametersHtml = `
+        <div class="space-y-3">
+          <div class="flex justify-between py-2 border-b border-gray-700">
+            <span class="text-gray-300">Destination:</span>
+            <span class="font-semibold">${dest?.name || missionData.destination}</span>
+          </div>
+          <div class="flex justify-between py-2 border-b border-gray-700">
+            <span class="text-gray-300">Distance:</span>
+            <span class="font-semibold">${dest?.distance || 'N/A'}</span>
+          </div>
+          <div class="flex justify-between py-2 border-b border-gray-700">
+            <span class="text-gray-300">Crew Size:</span>
+            <span class="font-semibold">${missionData.passengers} people</span>
+          </div>
+          <div class="flex justify-between py-2 border-b border-gray-700">
+            <span class="text-gray-300">Total Duration:</span>
+            <span class="font-semibold">${missionData.duration} days (${Math.round(missionData.duration/365*10)/10} years)</span>
+          </div>
+          <div class="flex justify-between py-2 border-b border-gray-700">
+            <span class="text-gray-300">Mission Type:</span>
+            <span class="font-semibold">${missionData.destination === 'Orbit' ? 'Space Station' : 'Planetary Exploration'}</span>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('mission-parameters').innerHTML = parametersHtml;
+    }
+
+    function generateTechnicalSpecs() {
+      const propulsionNames = {
+        'chemical': 'Chemical Propulsion',
+        'nuclear': 'Nuclear Thermal Propulsion'
+      };
+      
+      const habitatNames = {
+        'pre_fabricated': 'Pre-fabricated Modules',
+        'inflatable': 'Inflatable Modules',
+        'isru_printed': '3D Printed Habitat (ISRU)'
+      };
+      
+      const materialNames = {
+        'aluminum': 'Aluminum Alloy (Al 2219)',
+        'titanium': 'Titanium Composite',
+        'carbon_fiber': 'Carbon Fiber',
+        'regolith_3d': '3D Printed Regolith',
+        'polyethylene': 'Polyethylene'
+      };
+      
+      const specsHtml = `
+        <div class="space-y-3">
+          <div class="flex justify-between py-2 border-b border-gray-700">
+            <span class="text-gray-300">Propulsion System:</span>
+            <span class="font-semibold">${propulsionNames[missionData.propulsion] || missionData.propulsion}</span>
+          </div>
+          <div class="flex justify-between py-2 border-b border-gray-700">
+            <span class="text-gray-300">Habitat Strategy:</span>
+            <span class="font-semibold">${habitatNames[missionData.habitat_strategy] || missionData.habitat_strategy}</span>
+          </div>
+          <div class="flex justify-between py-2 border-b border-gray-700">
+            <span class="text-gray-300">Structural Material:</span>
+            <span class="font-semibold">${materialNames[missionData.habitat_material] || missionData.habitat_material}</span>
+          </div>
+          <div class="flex justify-between py-2 border-b border-gray-700">
+            <span class="text-gray-300">Storm Shelter:</span>
+            <span class="font-semibold ${missionData.storm_shelter === 'true' ? 'text-green-400' : 'text-red-400'}">
+              ${missionData.storm_shelter === 'true' ? '✓ Configured' : '✗ Not included'}
+            </span>
+          </div>
+          ${missionData.storm_shelter === 'true' ? `
+            <div class="flex justify-between py-2 border-b border-gray-700">
+              <span class="text-gray-300">Shelter Type:</span>
+              <span class="font-semibold">
+                ${missionData.shelter_type === 'water_walls' ? 'Water Walls' : 
+                  missionData.shelter_type === 'polyethylene_layers' ? 'Polyethylene Layers' : 
+                  missionData.shelter_type === 'regolith_bunker' ? 'Regolith Bunker' : 'N/A'}
+              </span>
+            </div>
+          ` : ''}
+          <div class="flex justify-between py-2 border-b border-gray-700">
+            <span class="text-gray-300">Analysis Version:</span>
+            <span class="font-semibold">${missionData.analysis_version || '1.0'}</span>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('technical-specs').innerHTML = specsHtml;
+    }
+
+    function generateSurvivalSummary() {
+      const summaryHtml = `
+        <div class="bg-gradient-to-br from-blue-900/30 to-blue-800/30 p-4 rounded-lg border border-blue-600/30">
+          <h3 class="font-semibold text-blue-300 mb-3 flex items-center gap-2">
+            <i data-lucide="zap" class="w-4 h-4"></i>Radiation Protection
+          </h3>
+          <div class="space-y-2 text-sm">
+            <p class="text-gray-300">Structural material provides moderate protection</p>
+            <div class="flex justify-between">
+              <span>Estimated effectiveness:</span>
+              <span class="font-semibold text-blue-300">
+                ${missionData.habitat_material === 'regolith_3d' ? 'Exceptional (10/10)' :
+                  missionData.habitat_material === 'polyethylene' ? 'Very High (9/10)' :
+                  missionData.habitat_material === 'titanium' ? 'Moderate (5/10)' :
+                  missionData.habitat_material === 'aluminum' ? 'Low (4/10)' : 'Very Low (3/10)'}
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-gradient-to-br from-green-900/30 to-green-800/30 p-4 rounded-lg border border-green-600/30">
+          <h3 class="font-semibold text-green-300 mb-3 flex items-center gap-2">
+            <i data-lucide="thermometer" class="w-4 h-4"></i>Thermal Control
+          </h3>
+          <div class="space-y-2 text-sm">
+            <p class="text-gray-300">Adequate thermal control system</p>
+            <div class="flex justify-between">
+              <span>Thermal resistance:</span>
+              <span class="font-semibold text-green-300">
+                ${missionData.habitat_material === 'regolith_3d' ? 'Excellent (9/10)' :
+                  missionData.habitat_material === 'titanium' ? 'Excellent (9/10)' :
+                  missionData.habitat_material === 'carbon_fiber' ? 'High (8/10)' :
+                  missionData.habitat_material === 'aluminum' ? 'Good (7/10)' : 'Moderate (5/10)'}
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-gradient-to-br from-purple-900/30 to-purple-800/30 p-4 rounded-lg border border-purple-600/30">
+          <h3 class="font-semibold text-purple-300 mb-3 flex items-center gap-2">
+            <i data-lucide="wind" class="w-4 h-4"></i>Environmental Resistance
+          </h3>
+          <div class="space-y-2 text-sm">
+            <p class="text-gray-300">Protection against hostile elements</p>
+            <div class="flex justify-between">
+              <span>Abrasion resistance:</span>
+              <span class="font-semibold text-purple-300">
+                ${missionData.habitat_material === 'titanium' ? 'Excellent (8/10)' :
+                  missionData.habitat_material === 'carbon_fiber' ? 'Good (7/10)' :
+                  missionData.habitat_material === 'aluminum' ? 'Moderate (6/10)' :
+                  missionData.habitat_material === 'regolith_3d' ? 'Low (4/10)' : 'Very Low (3/10)'}
+              </span>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('survival-summary').innerHTML = summaryHtml;
+    }
+
+    function generateResourceRequirements() {
+      const requirementsHtml = `
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <h3 class="font-semibold text-indigo-300 mb-3">Launch Resources</h3>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between py-1">
+                <span>Estimated habitat mass:</span>
+                <span class="font-semibold">
+                  ${missionData.habitat_strategy === 'pre_fabricated' ? '~150 tons' :
+                    missionData.habitat_strategy === 'inflatable' ? '~25 tons' : '~5 tons'}
+                </span>
+              </div>
+              <div class="flex justify-between py-1">
+                <span>Required launches:</span>
+                <span class="font-semibold">
+                  ${missionData.habitat_strategy === 'pre_fabricated' ? '15-20 launches' :
+                    missionData.habitat_strategy === 'inflatable' ? '3-5 launches' : '1-2 launches'}
+                </span>
+              </div>
+              <div class="flex justify-between py-1">
+                <span>Fuel (propulsion):</span>
+                <span class="font-semibold">
+                  ${missionData.propulsion === 'nuclear' ? '~30% less mass' : 'Standard mass'}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <h3 class="font-semibold text-indigo-300 mb-3">In-Situ Resources (ISRU)</h3>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between py-1">
+                <span>Available water:</span>
+                <span class="font-semibold">
+                  ${missionData.destination === 'Mars' ? 'Abundant (subsurface)' :
+                    missionData.destination === 'Moon' ? 'Limited (poles)' : 'None'}
+                </span>
+              </div>
+              <div class="flex justify-between py-1">
+                <span>Construction materials:</span>
+                <span class="font-semibold">
+                  ${missionData.destination === 'Mars' ? 'Rich regolith' :
+                    missionData.destination === 'Moon' ? 'Lunar regolith' : 'None'}
+                </span>
+              </div>
+              <div class="flex justify-between py-1">
+                <span>O₂ production:</span>
+                <span class="font-semibold">
+                  ${missionData.destination === 'Mars' ? 'Atmospheric CO₂' :
+                    missionData.destination === 'Moon' ? 'Water ice' : 'Total import'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('resource-requirements').innerHTML = requirementsHtml;
+    }
+
+    function generateMissionTimeline() {
+      const phases = [];
+      
+      // Pre-deployment
+      if (missionData.habitat_strategy === 'isru_printed') {
+        phases.push({
+          phase: 'Pre-Deployment',
+          duration: '6-12 months',
+          description: 'Sending robots and 3D printing equipment'
+        });
+      }
+      
+      // Travel time
+      const travelTime = missionData.propulsion === 'nuclear' && missionData.destination === 'Mars' ? 
+        '3-4 meses' : destinationData[missionData.destination]?.travelTime || 'N/A';
+      
+      if (travelTime !== '0 dias') {
+        phases.push({
+          phase: 'Travel',
+          duration: travelTime,
+          description: `Transit to ${destinationData[missionData.destination]?.name}`
+        });
+      }
+      
+      // Setup
+      phases.push({
+        phase: 'Deployment',
+        duration: missionData.habitat_strategy === 'pre_fabricated' ? '1-2 months' :
+                 missionData.habitat_strategy === 'inflatable' ? '2-4 months' : '12-18 months',
+        description: 'Assembly and activation of habitat systems'
+      });
+      
+      // Operations
+      phases.push({
+        phase: 'Operations',
+        duration: `${Math.max(0, missionData.duration - 60)} days`,
+        description: 'Execution of scientific and exploration objectives'
+      });
+      
+      // Return (if applicable)
+      if (missionData.destination !== 'Orbit') {
+        phases.push({
+          phase: 'Return',
+          duration: travelTime,
+          description: 'Return journey to Earth'
+        });
+      }
+      
+      const timelineHtml = phases.map((phase, index) => `
+        <div class="flex items-start gap-4">
+          <div class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-sm font-bold">
+            ${index + 1}
+          </div>
+          <div class="flex-1">
+            <div class="flex justify-between items-center mb-1">
+              <h4 class="font-semibold">${phase.phase}</h4>
+              <span class="text-sm text-indigo-300">${phase.duration}</span>
+            </div>
+            <p class="text-sm text-gray-400">${phase.description}</p>
+          </div>
+        </div>
+      `).join('');
+      
+      document.getElementById('mission-timeline').innerHTML = timelineHtml;
+    }
+
+    function generateRiskAssessment() {
+      const risks = [];
+      
+      // Radiation risk
+      if (missionData.destination !== 'Orbit' || missionData.habitat_material === 'aluminum' || missionData.habitat_material === 'carbon_fiber') {
+        risks.push({
+          type: 'Cosmic Radiation',
+          level: missionData.habitat_material === 'regolith_3d' || missionData.habitat_material === 'polyethylene' ? 'Low' : 'High',
+          mitigation: missionData.storm_shelter === 'true' ? 'Storm shelter configured' : 'Consider additional shelter'
+        });
+      }
+      
+      // Travel time risk
+      if (missionData.propulsion === 'chemical' && missionData.destination === 'Mars') {
+        risks.push({
+          type: 'Prolonged Exposure',
+          level: 'High',
+          mitigation: 'Long journey increases physiological and psychological risks'
+        });
+      }
+      
+      // Supply chain risk
+      if (missionData.habitat_strategy === 'pre_fabricated') {
+        risks.push({
+          type: 'Supply Chain Dependency',
+          level: 'High',
+          mitigation: 'Multiple launches increase failure points'
+        });
+      }
+      
+      // ISRU risk
+      if (missionData.habitat_strategy === 'isru_printed') {
+        risks.push({
+          type: 'Technological Complexity',
+          level: 'Moderate',
+          mitigation: 'Experimental technology, but offers greater autonomy'
+        });
+      }
+      
+      const riskHtml = `
+        <div class="grid md:grid-cols-1 gap-4">
+          ${risks.map(risk => `
+            <div class="flex items-center justify-between p-3 border border-gray-600 rounded-lg">
+              <div>
+                <h4 class="font-semibold">${risk.type}</h4>
+                <p class="text-sm text-gray-400">${risk.mitigation}</p>
+              </div>
+              <span class="px-3 py-1 rounded-full text-xs font-semibold ${
+                risk.level === 'High' ? 'bg-red-600 text-white' :
+                risk.level === 'Moderate' ? 'bg-yellow-600 text-white' : 'bg-green-600 text-white'
+              }">
+                ${risk.level}
+              </span>
+            </div>
+          `).join('')}
+        </div>
+        
+        <div class="mt-6 p-4 bg-blue-900/30 border border-blue-600 rounded-lg">
+          <h3 class="font-semibold text-blue-300 mb-2 flex items-center gap-2">
+            <i data-lucide="info" class="w-4 h-4"></i>Contingency Plans
+          </h3>
+          <ul class="text-sm space-y-1 text-gray-300">
+            <li>• Redundant life support systems</li>
+            <li>• Emergency communication with Earth</li>
+            <li>• Evacuation protocol for solar storms</li>
+            <li>• Emergency supplies for 30+ extra days</li>
+            ${missionData.destination !== 'Orbit' ? '<li>• Escape vehicle to orbit</li>' : ''}
+          </ul>
+        </div>
+      `;
+      
+      document.getElementById('risk-assessment').innerHTML = riskHtml;
+    }
+
+    // Event listeners
+    document.getElementById('backToAnalysis').addEventListener('click', () => {
+      window.location.href = './technical-analysis.html';
+    });
+
+    // Start Simulation functionality - ready for user's custom link
+    document.getElementById('startSimulation').addEventListener('click', () => {
+      // Add your custom link or function here
+      alert('Start Simulation button ready to be linked!');
+    });
+
+    document.getElementById('newMission').addEventListener('click', () => {
+      if (confirm('Start new mission? Current data will be lost.')) {
+        localStorage.removeItem('missionProfile');
+        window.location.href = './index.html';
+      }
+    });
+
+    // Initialize
+    loadMissionData();
+    
+    // Refresh icons after content is loaded
+    setTimeout(() => {
+      lucide.createIcons();
+    }, 500);
+  </script>
+</body>
+</html>

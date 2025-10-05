@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PureFlow - Mission Technical Analysis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+    .card-bg { 
+      background-color: rgba(31, 41, 55, 0.95); 
+      backdrop-filter: blur(12px); 
+    }
+    .danger-box { 
+      background: linear-gradient(135deg, rgba(220, 38, 38, 0.2), rgba(153, 27, 27, 0.2));
+      border: 1px solid rgba(220, 38, 38, 0.5);
+    }
+    .warning-box { 
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.2));
+      border: 1px solid rgba(245, 158, 11, 0.5);
+    }
+    .success-box { 
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(21, 128, 61, 0.2));
+      border: 1px solid rgba(34, 197, 94, 0.5);
+    }
+    .info-box { 
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.2));
+      border: 1px solid rgba(59, 130, 246, 0.5);
+    }
+    .resistance-bar {
+      height: 8px;
+      border-radius: 4px;
+      background: #374151;
+      overflow: hidden;
+    }
+    .resistance-fill {
+      height: 100%;
+      transition: width 0.5s ease;
+    }
+    .solar-alert {
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+  </style>
+</head>
+<body class="text-white min-h-screen p-4">
+  <div class="max-w-7xl mx-auto">
+    
+    <!-- HEADER -->
+    <div class="card-bg p-6 rounded-2xl shadow-2xl mb-6">
+      <div class="flex justify-between items-center">
+        <div>
+          <h1 class="text-3xl font-bold text-indigo-400 mb-2">Mission Technical Analysis</h1>
+          <p class="text-gray-300" id="mission-summary">Loading mission profile...</p>
+        </div>
+        <div class="flex gap-3">
+          <button id="backToForm" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Edit
+          </button>
+          <button id="proceedToBriefing" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2">
+            Continue <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-6">
+      
+      <!-- ANÁLISE DE SOBREVIVÊNCIA POR DESTINO -->
+      <div class="card-bg p-6 rounded-2xl shadow-2xl">
+        <h2 class="text-xl font-semibold mb-4 border-b border-gray-600 pb-2 flex items-center gap-2">
+          <i data-lucide="target" class="w-5 h-5 text-indigo-400"></i>
+          Survival Analysis - <span id="destination-name">Destination</span>
+        </h2>
+        <div id="destination-analysis" class="space-y-4">
+          <!-- Content will be populated by JavaScript -->
+        </div>
+      </div>
+
+      <!-- MATERIAL ANALYSIS -->
+      <div class="card-bg p-6 rounded-2xl shadow-2xl">
+        <h2 class="text-xl font-semibold mb-4 border-b border-gray-600 pb-2 flex items-center gap-2">
+          <i data-lucide="shield" class="w-5 h-5 text-indigo-400"></i>
+          Habitat Material Analysis
+        </h2>
+        <div id="material-analysis" class="space-y-4">
+          <!-- Content will be populated by JavaScript -->
+        </div>
+      </div>
+
+    </div>
+
+    <div class="grid lg:grid-cols-1 gap-6 mt-6">
+      
+      <!-- ANÁLISE DE ARQUITETURA -->
+      <div class="card-bg p-6 rounded-2xl shadow-2xl">
+        <h2 class="text-xl font-semibold mb-4 border-b border-gray-600 pb-2 flex items-center gap-2">
+          <i data-lucide="settings" class="w-5 h-5 text-indigo-400"></i>
+          Mission Architecture Analysis
+        </h2>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div id="propulsion-analysis">
+            <!-- Content will be populated by JavaScript -->
+          </div>
+          <div id="habitat-strategy-analysis">
+            <!-- Content will be populated by JavaScript -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- MONITORAMENTO SOLAR EM TEMPO REAL -->
+    <div class="card-bg p-6 rounded-2xl shadow-2xl mt-6">
+      <h2 class="text-xl font-semibold mb-4 border-b border-gray-600 pb-2 flex items-center gap-2">
+        <i data-lucide="sun" class="w-5 h-5 text-yellow-400"></i>
+        Solar Threat Monitoring - DONKI API
+      </h2>
+      <div id="solar-monitoring" class="space-y-4">
+        <div class="info-box p-4 rounded-lg">
+          <div class="flex items-center gap-3 mb-3">
+            <i data-lucide="satellite" class="w-6 h-6 text-blue-400"></i>
+            <h3 class="font-semibold">Monitoring System Status</h3>
+          </div>
+          <p class="text-sm text-gray-300 mb-3">
+            System connected to NASA's DONKI API for real-time monitoring of:
+          </p>
+          <div class="grid md:grid-cols-3 gap-3 text-xs">
+            <div class="bg-gray-800/50 p-3 rounded">
+              <strong class="text-orange-400">CME</strong>
+              <p>Coronal Mass Ejections</p>
+            </div>
+            <div class="bg-gray-800/50 p-3 rounded">
+              <strong class="text-red-400">FLR</strong>
+              <p>Solar Flares</p>
+            </div>
+            <div class="bg-gray-800/50 p-3 rounded">
+              <strong class="text-purple-400">SEP</strong>
+              <p>Solar Proton Events</p>
+            </div>
+          </div>
+        </div>
+        
+        <div id="solar-events" class="space-y-3">
+          <div class="flex items-center justify-center p-4 text-gray-400">
+            <i data-lucide="loader" class="w-5 h-5 animate-spin mr-2"></i>
+            Loading solar activity data...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANÁLISE DE RISCOS E RECOMENDAÇÕES -->
+    <div class="card-bg p-6 rounded-2xl shadow-2xl mt-6 mb-8" id="risk-analysis">
+      <h2 class="text-xl font-semibold mb-4 border-b border-gray-600 pb-2 flex items-center gap-2">
+        <i data-lucide="alert-triangle" class="w-5 h-5 text-yellow-400"></i>
+        Risk Analysis & Recommendations
+      </h2>
+      <div id="recommendations" class="space-y-4">
+        <!-- Content will be populated by JavaScript -->
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    // Mission data from localStorage
+    let missionData = {};
+    
+    // Database of destination, material, and system characteristics
+    const destinationData = {
+      'Orbit': {
+        name: 'Earth Orbit',
+        description: 'Microgravity environment for stations or transit vehicles',
+        threats: {
+          radiation: { level: 'EXTREME', description: 'Full exposure to GCR and SPE' },
+          microgravity: { level: 'EXTREME', description: 'Severe physiological degradation' },
+          temperature: { level: 'MODERATE', description: 'Variations due to orbital cycles' }
+        },
+        resources: 'None - 100% dependent on resupply',
+        advantages: ['Constant solar energy', 'Easy modular construction'],
+        disadvantages: ['Health effects', 'Total Earth dependency']
+      },
+      'Moon': {
+        name: 'Moon',
+        description: 'Rocky body without atmosphere, 3 days from Earth',
+        threats: {
+          radiation: { level: 'EXTREME', description: 'No atmospheric or magnetic protection' },
+          temperature: { level: 'EXTREME', description: 'Variation from +120°C to -170°C' },
+          dust: { level: 'HIGH', description: 'Fine and sharp regolith' }
+        },
+        resources: 'Polar ice, Regolith for construction, Intermittent sunlight (14 days)',
+        advantages: ['Earth proximity (logistics and rescue)', 'Partial gravity (1/6 g)'],
+        disadvantages: ['14-day night', 'Dust hazard', 'Surface radiation']
+      },
+      'Mars': {
+        name: 'Mars',
+        description: 'Rocky planet with thin atmosphere, 6-9 months from Earth',
+        threats: {
+          radiation: { level: 'HIGH', description: 'Thin atmosphere offers minimal protection' },
+          dust_storms: { level: 'HIGH', description: 'Can last weeks, blocking sunlight' },
+          temperature: { level: 'HIGH', description: 'Average temperature -63°C' }
+        },
+        resources: 'Abundant subsurface ice, CO₂ atmosphere, Rich minerals',
+        advantages: ['Maximum self-sufficiency potential', '24.5h day/night cycle', 'Favorable gravity (1/3 g)'],
+        disadvantages: ['Extreme distance (no rescue)', 'Communication delay (up to 22 min)', 'Dust storms']
+      }
+    };
+
+    const materialData = {
+      'aluminum': {
+        name: 'Aluminum Alloy',
+        description: 'Aerospace standard (Al 2219)',
+        resistance: { radiation: 4, thermal: 7, abrasion: 6 },
+        advantages: ['Lightweight', 'Inexpensive', 'Easy fabrication', 'Well understood'],
+        disadvantages: ['Poor radiation shielding', 'Susceptible to thermal cycle fatigue']
+      },
+      'titanium': {
+        name: 'Titanium Composite',
+        description: 'Fiber-reinforced alloys',
+        resistance: { radiation: 5, thermal: 9, abrasion: 8 },
+        advantages: ['Extremely strong', 'Corrosion resistant', 'High temperatures'],
+        disadvantages: ['Expensive and heavy', 'Difficult fabrication and repair']
+      },
+      'carbon_fiber': {
+        name: 'Carbon Fiber',
+        description: 'Polymer matrix with fibers',
+        resistance: { radiation: 3, thermal: 8, abrasion: 7 },
+        advantages: ['Exceptional strength/weight ratio', 'Very rigid'],
+        disadvantages: ['Radiation creates dangerous secondary particles', 'Difficult repair']
+      },
+      'regolith_3d': {
+        name: '3D Printed Regolith',
+        description: 'Laser/microwave sintered soil',
+        resistance: { radiation: 10, thermal: 9, abrasion: 4 },
+        advantages: ['Exceptional shielding', 'Local resources (zero mass)', 'Excellent thermal insulator'],
+        disadvantages: ['Brittle', 'Low tensile strength', 'Vulnerable to impacts']
+      },
+      'polyethylene': {
+        name: 'Polyethylene',
+        description: 'Hydrogen-rich plastic',
+        resistance: { radiation: 9, thermal: 5, abrasion: 3 },
+        advantages: ['Excellent GCR and neutron shielding', 'Lightweight'],
+        disadvantages: ['Structurally weak', 'Internal shielding only']
+      }
+    };
+
+    function loadMissionData() {
+      const stored = localStorage.getItem('missionProfile');
+      if (stored) {
+        missionData = JSON.parse(stored);
+        updateMissionSummary();
+        generateAnalysis();
+      } else {
+        document.getElementById('mission-summary').textContent = 'Error: Mission data not found.';
+      }
+    }
+
+    function updateMissionSummary() {
+      const destination = destinationData[missionData.destination]?.name || missionData.destination;
+      const passengers = missionData.passengers || 'N/A';
+      const duration = missionData.duration || 'N/A';
+      
+      document.getElementById('mission-summary').innerHTML = 
+        `${passengers} crew members • ${duration} days • Destination: ${destination}`;
+    }
+
+    function generateAnalysis() {
+      generateDestinationAnalysis();
+      generateMaterialAnalysis();
+      generateArchitectureAnalysis();
+      generateRiskAnalysis();
+      simulateSolarMonitoring();
+    }
+
+    function generateDestinationAnalysis() {
+      const dest = destinationData[missionData.destination];
+      if (!dest) return;
+
+      document.getElementById('destination-name').textContent = dest.name;
+      
+      const analysisHtml = `
+        <div class="info-box p-4 rounded-lg mb-4">
+          <p class="text-blue-300 font-medium mb-2">${dest.description}</p>
+        </div>
+        
+        <div class="space-y-3">
+          <h4 class="font-semibold text-red-300 flex items-center gap-2">
+            <i data-lucide="alert-triangle" class="w-4 h-4"></i>Identified Threats
+          </h4>
+          ${Object.entries(dest.threats).map(([type, threat]) => `
+            <div class="danger-box p-3 rounded">
+              <div class="flex justify-between items-center mb-1">
+                <span class="font-medium capitalize">${type.replace('_', ' ')}</span>
+                <span class="text-xs px-2 py-1 rounded ${
+                  threat.level === 'EXTREME' ? 'bg-red-600' : 
+                  threat.level === 'HIGH' ? 'bg-orange-600' : 'bg-yellow-600'
+                }">${threat.level}</span>
+              </div>
+              <p class="text-sm text-gray-300">${threat.description}</p>
+            </div>
+          `).join('')}
+        </div>
+        
+        <div class="mt-4">
+          <h4 class="font-semibold text-yellow-300 mb-2">Available ISRU Resources</h4>
+          <div class="warning-box p-3 rounded">
+            <p class="text-sm">${dest.resources}</p>
+          </div>
+        </div>
+        
+        <div class="grid md:grid-cols-2 gap-4 mt-4">
+          <div class="success-box p-3 rounded">
+            <h5 class="font-semibold text-green-300 mb-2">Advantages</h5>
+            <ul class="text-sm space-y-1">
+              ${dest.advantages.map(adv => `<li class="flex items-start gap-2"><i data-lucide="check" class="w-3 h-3 mt-0.5 text-green-400"></i>${adv}</li>`).join('')}
+            </ul>
+          </div>
+          <div class="danger-box p-3 rounded">
+            <h5 class="font-semibold text-red-300 mb-2">Disadvantages</h5>
+            <ul class="text-sm space-y-1">
+              ${dest.disadvantages.map(dis => `<li class="flex items-start gap-2"><i data-lucide="x" class="w-3 h-3 mt-0.5 text-red-400"></i>${dis}</li>`).join('')}
+            </ul>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('destination-analysis').innerHTML = analysisHtml;
+    }
+
+    function generateMaterialAnalysis() {
+      const material = materialData[missionData.habitat_material];
+      if (!material) return;
+
+      const analysisHtml = `
+        <div class="info-box p-4 rounded-lg mb-4">
+          <h3 class="font-semibold text-blue-300 mb-2">${material.name}</h3>
+          <p class="text-sm text-gray-300">${material.description}</p>
+        </div>
+        
+        <div class="space-y-3">
+          <h4 class="font-semibold mb-3">Material Resistance</h4>
+          ${Object.entries(material.resistance).map(([type, value]) => `
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-sm capitalize">${type === 'radiation' ? 'Radiation' : type === 'thermal' ? 'Thermal' : 'Abrasion'}</span>
+              <div class="flex items-center gap-2">
+                <div class="resistance-bar w-24">
+                  <div class="resistance-fill ${value >= 8 ? 'bg-green-500' : value >= 6 ? 'bg-yellow-500' : value >= 4 ? 'bg-orange-500' : 'bg-red-500'}" 
+                       style="width: ${value * 10}%"></div>
+                </div>
+                <span class="text-sm font-mono w-8">${value}/10</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        
+        <div class="grid md:grid-cols-1 gap-4 mt-4">
+          <div class="success-box p-3 rounded">
+            <h5 class="font-semibold text-green-300 mb-2">Advantages</h5>
+            <ul class="text-sm space-y-1">
+              ${material.advantages.map(adv => `<li class="flex items-start gap-2"><i data-lucide="plus" class="w-3 h-3 mt-0.5 text-green-400"></i>${adv}</li>`).join('')}
+            </ul>
+          </div>
+          <div class="danger-box p-3 rounded mt-2">
+            <h5 class="font-semibold text-red-300 mb-2">Disadvantages</h5>
+            <ul class="text-sm space-y-1">
+              ${material.disadvantages.map(dis => `<li class="flex items-start gap-2"><i data-lucide="minus" class="w-3 h-3 mt-0.5 text-red-400"></i>${dis}</li>`).join('')}
+            </ul>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('material-analysis').innerHTML = analysisHtml;
+    }
+
+    function generateArchitectureAnalysis() {
+      // Propulsion analysis
+      const propulsionHtml = `
+        <div class="info-box p-4 rounded-lg">
+          <h3 class="font-semibold text-blue-300 mb-3 flex items-center gap-2">
+            <i data-lucide="rocket" class="w-4 h-4"></i>
+            Propulsion System: ${missionData.propulsion === 'nuclear' ? 'Nuclear Thermal' : 'Chemical'}
+          </h3>
+          ${missionData.propulsion === 'nuclear' ? `
+            <div class="space-y-3">
+              <div class="success-box p-3 rounded">
+                <h4 class="font-semibold text-green-300 mb-2">Benefits</h4>
+                <ul class="text-sm space-y-1">
+                  <li>✓ Reduced travel to 3-4 months</li>
+                  <li>✓ Drastic reduction in radiation dose</li>
+                  <li>✓ 2-3x more efficient than chemical</li>
+                  <li>✓ Lower propellant mass</li>
+                </ul>
+              </div>
+              <div class="warning-box p-3 rounded">
+                <h4 class="font-semibold text-yellow-300 mb-2">Challenges</h4>
+                <ul class="text-sm space-y-1">
+                  <li>⚠ High technical complexity</li>
+                  <li>⚠ High development cost</li>
+                  <li>⚠ Reactor shielding required</li>
+                </ul>
+              </div>
+            </div>
+          ` : `
+            <div class="space-y-3">
+              <div class="success-box p-3 rounded">
+                <h4 class="font-semibold text-green-300 mb-2">Benefits</h4>
+                <ul class="text-sm space-y-1">
+                  <li>✓ Proven and reliable technology</li>
+                  <li>✓ High thrust for orbital escape</li>
+                  <li>✓ Lower technical complexity</li>
+                </ul>
+              </div>
+              <div class="danger-box p-3 rounded">
+                <h4 class="font-semibold text-red-300 mb-2">Risks</h4>
+                <ul class="text-sm space-y-1">
+                  <li>✗ Long travel time (6-9 months)</li>
+                  <li>✗ Higher radiation exposure</li>
+                  <li>✗ Low fuel efficiency</li>
+                  <li>✗ Higher propellant mass required</li>
+                </ul>
+              </div>
+            </div>
+          `}
+        </div>
+      `;
+
+      // Habitat strategy analysis
+      const strategyNames = {
+        'pre_fabricated': 'Pre-fabricated',
+        'inflatable': 'Inflatable Modules', 
+        'isru_printed': '3D Printed (ISRU)'
+      };
+      
+      const habitatHtml = `
+        <div class="info-box p-4 rounded-lg">
+          <h3 class="font-semibold text-blue-300 mb-3 flex items-center gap-2">
+            <i data-lucide="home" class="w-4 h-4"></i>
+            Strategy: ${strategyNames[missionData.habitat_strategy] || missionData.habitat_strategy}
+          </h3>
+          ${missionData.habitat_strategy === 'isru_printed' ? `
+            <div class="space-y-3">
+              <div class="success-box p-3 rounded">
+                <h4 class="font-semibold text-green-300 mb-2">Benefits</h4>
+                <ul class="text-sm space-y-1">
+                  <li>✓ Near-zero launch mass</li>
+                  <li>✓ Better natural shielding</li>
+                  <li>✓ Long-term self-sufficiency</li>
+                  <li>✓ Uses local resources</li>
+                </ul>
+              </div>
+              <div class="warning-box p-3 rounded">
+                <h4 class="font-semibold text-yellow-300 mb-2">Challenges</h4>
+                <ul class="text-sm space-y-1">
+                  <li>⚠ Experimental technology</li>
+                  <li>⚠ Very long construction time</li>
+                  <li>⚠ Dependent on functional robots</li>
+                </ul>
+              </div>
+            </div>
+          ` : missionData.habitat_strategy === 'inflatable' ? `
+            <div class="space-y-3">
+              <div class="success-box p-3 rounded">
+                <h4 class="font-semibold text-green-300 mb-2">Benefits</h4>
+                <ul class="text-sm space-y-1">
+                  <li>✓ Better volume/mass ratio</li>
+                  <li>✓ More space = better psychology</li>
+                  <li>✓ Enables larger habitats</li>
+                  <li>✓ Fewer launches required</li>
+                </ul>
+              </div>
+              <div class="warning-box p-3 rounded">
+                <h4 class="font-semibold text-yellow-300 mb-2">Challenges</h4>
+                <ul class="text-sm space-y-1">
+                  <li>⚠ Deployment complexity</li>
+                  <li>⚠ Internal assembly required</li>
+                  <li>⚠ Vulnerability to punctures</li>
+                </ul>
+              </div>
+            </div>
+          ` : `
+            <div class="space-y-3">
+              <div class="success-box p-3 rounded">
+                <h4 class="font-semibold text-green-300 mb-2">Benefícios</h4>
+                <ul class="text-sm space-y-1">
+                  <li>✓ Immediate operational base</li>
+                  <li>✓ Rapid deployment</li>
+                  <li>✓ Tested technology</li>
+                </ul>
+              </div>
+              <div class="danger-box p-3 rounded">
+                <h4 class="font-semibold text-red-300 mb-2">Risks</h4>
+                <ul class="text-sm space-y-1">
+                  <li>✗ EXTREME mass cost</li>
+                  <li>✗ Volume limited by rocket</li>
+                  <li>✗ Difficult and expensive expansion</li>
+                </ul>
+              </div>
+            </div>
+          `}
+        </div>
+      `;
+
+      document.getElementById('propulsion-analysis').innerHTML = propulsionHtml;
+      document.getElementById('habitat-strategy-analysis').innerHTML = habitatHtml;
+    }
+
+    function generateRiskAnalysis() {
+      const destination = destinationData[missionData.destination];
+      const material = materialData[missionData.habitat_material];
+      const hasStormShelter = missionData.storm_shelter === 'true';
+      
+      let riskLevel = 'MODERATE';
+      let recommendations = [];
+      
+      // Analyze radiation risk
+      if (destination && destination.threats.radiation && destination.threats.radiation.level === 'EXTREME') {
+        if (material && material.resistance.radiation < 6) {
+          riskLevel = 'CRITICAL';
+          recommendations.push({
+            type: 'critical',
+            title: 'Insufficient Radiation Shielding',
+            description: `Material ${material.name} offers inadequate protection (${material.resistance.radiation}/10) for ${destination.threats.radiation.level} radiation environment.`,
+            action: 'Consider using 3D Regolith or adding Polyethylene layers.'
+          });
+        }
+      }
+      
+      // Storm shelter analysis
+      if (!hasStormShelter && (destination?.threats.radiation?.level === 'EXTREME' || destination?.threats.radiation?.level === 'HIGH')) {
+        recommendations.push({
+          type: 'warning',
+          title: 'Storm Shelter Recommended',
+          description: 'Without additional protection, solar storms can be fatal.',
+          action: 'Add a shelter with extra shielding (water or polyethylene).'
+        });
+      }
+      
+      // Propulsion vs radiation exposure
+      if (missionData.propulsion === 'chemical' && missionData.destination === 'Mars') {
+        recommendations.push({
+          type: 'warning', 
+          title: 'Prolonged Radiation Exposure',
+          description: '6-9 month journey with chemical propulsion significantly increases radiation dose.',
+          action: 'Consider nuclear thermal propulsion to reduce travel time.'
+        });
+      }
+      
+      // Material-specific recommendations
+      if (material?.name === 'Fibra de Carbono') {
+        recommendations.push({
+          type: 'info',
+          title: 'Secondary Particles',
+          description: 'Carbon fiber can generate dangerous secondary particles when hit by radiation.',
+          action: 'Add internal polyethylene layer to capture particles.'
+        });
+      }
+      
+      const recommendationsHtml = `
+        <div class="mb-4">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-3 h-3 rounded-full ${
+              riskLevel === 'CRÍTICO' ? 'bg-red-500' : 
+              riskLevel === 'ALTO' ? 'bg-orange-500' : 
+              riskLevel === 'MODERADO' ? 'bg-yellow-500' : 'bg-green-500'
+            }"></div>
+            <span class="font-semibold">Overall Risk Level: ${riskLevel}</span>
+          </div>
+        </div>
+        
+        <div class="space-y-4">
+          ${recommendations.map(rec => `
+            <div class="${rec.type === 'critical' ? 'danger-box' : rec.type === 'warning' ? 'warning-box' : 'info-box'} p-4 rounded-lg">
+              <div class="flex items-start gap-3">
+                <i data-lucide="${rec.type === 'critical' ? 'alert-circle' : rec.type === 'warning' ? 'alert-triangle' : 'info'}" 
+                   class="w-5 h-5 mt-0.5 ${rec.type === 'critical' ? 'text-red-400' : rec.type === 'warning' ? 'text-yellow-400' : 'text-blue-400'}"></i>
+                <div>
+                  <h4 class="font-semibold mb-2">${rec.title}</h4>
+                  <p class="text-sm text-gray-300 mb-2">${rec.description}</p>
+                  <p class="text-sm font-medium"><strong>Recommended Action:</strong> ${rec.action}</p>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        
+        ${hasStormShelter ? `
+          <div class="success-box p-4 rounded-lg mt-4">
+            <div class="flex items-center gap-3">
+              <i data-lucide="shield-check" class="w-5 h-5 text-green-400"></i>
+              <div>
+                <h4 class="font-semibold text-green-300">Storm Shelter Configured</h4>
+                <p class="text-sm text-gray-300">
+                  Type: ${missionData.shelter_type === 'water_walls' ? 'Water Walls' : 
+                          missionData.shelter_type === 'polyethylene_layers' ? 'Polyethylene Layers' : 
+                          'Regolith Bunker'}
+                </p>
+              </div>
+            </div>
+          </div>
+        ` : ''}
+      `;
+      
+      document.getElementById('recommendations').innerHTML = recommendationsHtml;
+    }
+
+    function simulateSolarMonitoring() {
+      // Simulate DONKI API data (in real implementation, this would be actual API calls)
+      setTimeout(() => {
+        const events = [
+          {
+            type: 'CME',
+            time: '2025-10-04T14:30:00Z',
+            severity: 'Moderate',
+            description: 'Moderate velocity coronal mass ejection detected',
+            impact: 'Arrival expected in 48-72 hours'
+          },
+          {
+            type: 'FLR',
+            time: '2025-10-04T08:15:00Z', 
+            severity: 'C-Class',
+            description: 'C-class solar flare detected',
+            impact: 'Radiation arrived in 8 minutes - no critical risk'
+          }
+        ];
+        
+        const eventsHtml = events.map(event => `
+          <div class="${event.severity === 'Moderate' || event.severity.includes('M') || event.severity.includes('X') ? 'warning-box' : 'info-box'} p-4 rounded-lg">
+            <div class="flex items-start justify-between">
+              <div class="flex items-start gap-3">
+                <i data-lucide="${event.type === 'CME' ? 'zap' : 'sun'}" class="w-5 h-5 mt-0.5 ${event.type === 'CME' ? 'text-orange-400' : 'text-yellow-400'}"></i>
+                <div>
+                  <h4 class="font-semibold mb-1">${event.type} - ${event.severity}</h4>
+                  <p class="text-sm text-gray-300 mb-1">${event.description}</p>
+                  <p class="text-xs text-gray-400">${event.impact}</p>
+                </div>
+              </div>
+              <span class="text-xs text-gray-400">${new Date(event.time).toLocaleString()}</span>
+            </div>
+          </div>
+        `).join('');
+        
+        document.getElementById('solar-events').innerHTML = eventsHtml;
+      }, 2000);
+    }
+
+    // Event listeners
+    document.getElementById('backToForm').addEventListener('click', () => {
+      window.location.href = './index.html';
+    });
+
+    document.getElementById('proceedToBriefing').addEventListener('click', () => {
+      window.location.href = './briefing.html';
+    });
+
+    // Initialize
+    loadMissionData();
+    
+    // Refresh icons after content is loaded
+    setTimeout(() => {
+      lucide.createIcons();
+    }, 500);
+  </script>
+</body>
+</html>
