@@ -66,6 +66,25 @@
         .level-btn.active {
             background-color: #4f46e5;
             color: white;
+            border-color: #a5b4fc;
+        }
+        .level-btn.linking-active {
+            animation: pulse-border 2s infinite;
+        }
+        @keyframes pulse-border {
+            0%, 100% { border-color: #f59e0b; }
+            50% { border-color: #fcd34d; }
+        }
+        .level-btn.removing-active {
+            animation: pulse-border-red 1.5s infinite;
+        }
+        @keyframes pulse-border-red {
+            0%, 100% { border-color: #ef4444; background-color: #7f1d1d; }
+            50% { border-color: #fca5a5; background-color: #b91c1c; }
+        }
+        /* Style for draggable items */
+        .module-button:active {
+            cursor: grabbing;
         }
     </style>
 </head>
@@ -78,6 +97,7 @@
 
     <div id="app-container" class="flex h-screen w-screen opacity-0 transition-opacity duration-500">
         
+        <!-- Left Control Panel -->
         <div class="w-1/4 max-w-sm h-full bg-gray-800 p-4 shadow-lg overflow-y-auto flex flex-col space-y-6">
             <div>
                 <h1 class="text-2xl font-bold text-indigo-400">Habitat Designer</h1>
@@ -103,70 +123,79 @@
                 <div class="flex justify-around">
                     <div>
                         <input type="radio" id="mode-layout" name="design-mode" value="layout" checked>
-                        <label for="mode-layout" class="text-sm ml-1">Layout Mode</label>
+                        <label for="mode-layout" class="text-sm ml-1">Internal Layout</label>
                     </div>
                     <div>
                         <input type="radio" id="mode-build" name="design-mode" value="build">
-                        <label for="mode-build" class="text-sm ml-1">Build Mode</label>
+                        <label for="mode-build" class="text-sm ml-1">External Build</label>
                     </div>
                 </div>
-                 <p class="text-xs text-gray-400 mt-2">Layout: Place modules inside. Build: Move entire levels.</p>
+                 <p class="text-xs text-gray-400 mt-2">Layout: Position internal modules. Build: Move and connect entire levels.</p>
             </div>
 
             <div class="space-y-4 bg-gray-900 p-4 rounded-lg">
-                <h2 class="font-semibold text-lg border-b border-gray-700 pb-2">Mission Parameters</h2>
-                <div class="flex items-center justify-between">
-                    <label for="crew-size" class="text-sm">Crew Size:</label>
-                    <span id="crew-size-value" class="font-mono text-indigo-400">4</span>
+                <h2 class="font-semibold text-lg border-b border-gray-700 pb-2">Levels & Assembly</h2>
+                <div id="level-selector" class="grid grid-cols-3 gap-2">
+                    <!-- Level buttons will be dynamically inserted here -->
                 </div>
-                <input id="crew-size" type="range" min="1" max="12" value="4" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb">
-
-                <div class="flex items-center justify-between">
-                    <label for="mission-duration" class="text-sm">Duration (days):</label>
-                    <span id="mission-duration-value" class="font-mono text-indigo-400">365</span>
+                <div class="flex justify-center gap-2 mt-2">
+                    <button id="add-level-btn" title="Add a new level to the habitat" class="w-full p-2 text-sm bg-green-600 hover:bg-green-700 rounded-md transition-colors">Add Level</button>
+                    <button id="remove-level-btn" title="Remove the currently selected level" class="w-full p-2 text-sm bg-red-800 hover:bg-red-700 rounded-md transition-colors">Remove Level</button>
                 </div>
-                <input id="mission-duration" type="range" min="30" max="1000" value="365" step="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb">
-            </div>
-            
-            <div class="space-y-4 bg-gray-900 p-4 rounded-lg">
-                <h2 class="font-semibold text-lg border-b border-gray-700 pb-2">Habitat Levels</h2>
-                <div id="level-selector" class="flex flex-wrap justify-center gap-2">
-                    <button data-level="0" class="level-btn flex-1 p-2 text-sm bg-gray-700 rounded active">Level 1</button>
-                    <button data-level="1" class="level-btn flex-1 p-2 text-sm bg-gray-700 rounded">Level 2</button>
-                    <button data-level="2" class="level-btn flex-1 p-2 text-sm bg-gray-700 rounded">Level 3</button>
-                    <button data-level="3" class="level-btn flex-1 p-2 text-sm bg-gray-700 rounded mt-2">Level 4</button>
-                    <button data-level="4" class="level-btn flex-1 p-2 text-sm bg-gray-700 rounded mt-2">Level 5</button>
-                </div>
+                 <div class="flex justify-center gap-2 mt-4">
+                      <button id="stack-levels-btn" title="Vertically stack all unlinked levels" class="w-full p-2 text-sm bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">Stack All</button>
+                      <button id="link-mode-btn" class="w-full p-2 text-sm bg-yellow-600 hover:bg-yellow-700 rounded-md transition-colors">Link Levels</button>
+                      <button id="unlink-all-btn" class="w-full p-2 text-sm bg-red-600 hover:bg-red-700 rounded-md transition-colors">Unlink All</button>
+                 </div>
             </div>
 
             <div class="space-y-4 bg-gray-900 p-4 rounded-lg">
-                <h2 class="font-semibold text-lg border-b border-gray-700 pb-2">Habitat Shell (Active Level)</h2>
+                <h2 class="font-semibold text-lg border-b border-gray-700 pb-2">Structure (Active Level)</h2>
                 <div>
                     <label for="habitat-shape" class="text-sm">Shape:</label>
                     <select id="habitat-shape" class="w-full mt-1 bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        </select>
+                    </select>
                 </div>
                 <div id="dimension-controls" class="space-y-4">
-                    </div>
+                </div>
             </div>
 
             <div class="space-y-3 bg-gray-900 p-4 rounded-lg flex-grow">
                  <div class="flex justify-between items-center border-b border-gray-700 pb-2">
-                    <h2 class="font-semibold text-lg">Functional Areas</h2>
-                    <button id="clear-modules-btn" class="text-xs bg-red-600 hover:bg-red-700 px-2 py-1 rounded">Clear Modules</button>
+                      <h2 class="font-semibold text-lg">Functional Areas</h2>
+                      <button id="clear-modules-btn" class="text-xs bg-red-600 hover:bg-red-700 px-2 py-1 rounded">Clear Modules</button>
                  </div>
-                 <div id="module-palette" class="grid grid-cols-2 gap-2 pt-2">
-                    </div>
+                  <p class="text-xs text-gray-400 mt-2">Drag a module into the habitat to place it.</p>
+                  <div id="module-palette" class="grid grid-cols-2 gap-2 pt-2">
+                  </div>
             </div>
         </div>
 
+        <!-- Center 3D Canvas -->
         <div id="canvas-container" class="flex-grow h-full relative">
-            <div class="absolute top-2 left-2 bg-gray-800 bg-opacity-70 p-2 rounded-md text-xs">
+            <div class="absolute top-2 left-2 bg-gray-800 bg-opacity-70 p-2 rounded-md text-xs z-10">
                 <p>Controls: Left Click + Drag to Rotate | Right Click + Drag to Pan | Scroll to Zoom</p>
-                <p>W: Move | S: Scale | E: Rotate | Q: Delete | ESC: Deselect | Build Mode: Click shell to move it</p>
+                <p>W: Translate | S: Scale | E: Rotate | Q/Del: Delete | ESC: Deselect</p>
+                <p id="build-mode-help" class="hidden">Build Mode: Click a level to select. Link Mode: Click two levels to connect.</p>
+            </div>
+             <div id="link-mode-indicator" class="hidden absolute top-2 right-2 bg-yellow-500 text-black p-2 rounded-md text-sm font-bold animate-pulse z-10">
+                  LINK MODE ACTIVE
+             </div>
+             <div id="removal-mode-indicator" class="hidden absolute top-12 right-2 bg-red-600 text-white p-2 rounded-md text-sm font-bold animate-pulse z-10">
+                  SELECT LEVEL TO REMOVE
+             </div>
+             <!-- View Toggle Buttons -->
+            <div class="absolute bottom-4 right-4 flex flex-col gap-2">
+                <button id="view-toggle-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-transform transform hover:scale-105">
+                    2D View
+                </button>
+                 <button id="reset-camera-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-transform transform hover:scale-105">
+                     Reset Camera
+                 </button>
             </div>
         </div>
 
+        <!-- Right Analysis Panel -->
         <div class="w-1/4 max-w-sm h-full bg-gray-800 p-4 shadow-lg overflow-y-auto flex flex-col space-y-6">
             <div>
                 <h2 class="text-xl font-bold text-indigo-400">System Analysis</h2>
@@ -194,7 +223,7 @@
                 <h3 class="font-semibold text-lg border-b border-gray-700 pb-2 text-green-400">Engineering Rationale</h3>
                 <div class="text-sm space-y-2 mt-2">
                     <p>Shape: <strong id="rationale-shape" class="font-mono text-white">N/A</strong></p>
-                    <p id="rationale-text" class="text-gray-300">Select a habitat level in Build Mode to see its structural rationale.</p>
+                    <p id="rationale-text" class="text-gray-300">Select a habitat level in Build Mode to see the structural rationale.</p>
                 </div>
             </div>
 
@@ -205,20 +234,21 @@
                     <p>Required: <span id="selected-module-required" class="font-mono">0 m³</span></p>
                     <p>Status: <span id="selected-module-status" class="font-bold">N/A</span></p>
                 </div>
+                <button id="delete-module-btn" class="w-full mt-3 p-2 text-sm bg-red-600 hover:bg-red-700 rounded-md transition-colors">Delete Module</button>
             </div>
 
             <div id="mission-checklist" class="bg-gray-900 p-4 rounded-lg">
                 <h3 class="font-semibold text-lg border-b border-gray-700 pb-2 text-cyan-400">Readiness Checklist</h3>
                 <ul id="checklist-list" class="text-sm space-y-2 mt-2">
-                    </ul>
+                </ul>
             </div>
             
              <div class="bg-gray-900 p-4 rounded-lg flex-grow">
-                <h3 class="font-semibold text-lg border-b border-gray-700 pb-2 text-yellow-400">Alerts & Warnings</h3>
-                <ul id="alerts-list" class="text-sm space-y-2 mt-2 list-disc list-inside">
-                    <li class="text-gray-500">No alerts at this time.</li>
-                </ul>
-            </div>
+                 <h3 class="font-semibold text-lg border-b border-gray-700 pb-2 text-yellow-400">Alerts & Warnings</h3>
+                 <ul id="alerts-list" class="text-sm space-y-2 mt-2 list-disc list-inside">
+                      <li class="text-gray-500">No alerts at this time.</li>
+                 </ul>
+             </div>
         </div>
     </div>
 
@@ -229,22 +259,22 @@
 
         // --- Configuration Data ---
         const MODULE_TYPES = {
-            'Quarters': { color: 0x1d4ed8, volumePerCrew: 7, adjacencyWarning: ['Exercise', 'Workshop', 'ECLSS'] },
+            'Crew Quarters': { color: 0x1d4ed8, volumePerCrew: 7, adjacencyWarning: ['Exercise', 'Workshop', 'ECLSS'] },
             'Hygiene': { color: 0x0e7490, volumePerCrew: 4, adjacencyWarning: ['Galley'] },
             'Galley': { color: 0x0ca5e9, volumePerCrew: 6, adjacencyWarning: ['Hygiene', 'Waste Management'] },
-            'Exercise': { color: 0xbe123c, volumePerCrew: 8, adjacencyWarning: ['Quarters'] },
-            'Recreation': { color: 0xd9463fd, volumePerCrew: 9, adjacencyWarning: [] },
+            'Exercise': { color: 0xbe123c, volumePerCrew: 8, adjacencyWarning: ['Crew Quarters'] },
+            'Recreation': { color: 0xd9463f, volumePerCrew: 9, adjacencyWarning: [] },
             'Storage': { color: 0x64748b, volumePerCrew: 10, missionDurationFactor: 0.1, adjacencyWarning: [] },
-            'Workshop': { color: 0xd97706, volumePerCrew: 5, adjacencyWarning: ['Quarters'] },
-            'ECLSS': { color: 0x7c2d12, volumePerCrew: 10, adjacencyWarning: ['Quarters', 'Galley'] },
+            'Workshop': { color: 0xd97706, volumePerCrew: 5, adjacencyWarning: ['Crew Quarters'] },
+            'ECLSS': { color: 0x7c2d12, volumePerCrew: 10, adjacencyWarning: ['Crew Quarters', 'Galley'] },
             'Waste Management': { color: 0x4a044e, volumePerCrew: 3, adjacencyWarning: ['Galley', 'Hygiene'] },
-            'Laboratory': { color: 0x059669, volumePerCrew: 12, adjacencyWarning: [] },
+            'Science Lab': { color: 0x059669, volumePerCrew: 12, adjacencyWarning: [] },
             'Greenhouse': { color: 0x16a34a, volumePerCrew: 8, adjacencyWarning: ['Waste Management'] },
             'Airlock': { color: 0x9ca3af, volumePerCrew: 2, adjacencyWarning: [] },
         };
 
         const MODULE_ICONS = {
-            'Quarters': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" /></svg>`,
+            'Crew Quarters': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" /></svg>`,
             'Hygiene': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-12v4m-2-2h4m6 4v4m-2-2h4M6 21a2 2 0 002-2h8a2 2 0 002-2V7a2 2 0 00-2-2h-4M6 21V7a2 2 0 012-2h4" /></svg>`,
             'Galley': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7.014A8.003 8.003 0 0112 2a8.003 8.003 0 016.014 2.986C20.5 5 21 8 21 10c2 1 2.657 1.343 2.657 2.657a8 8 0 01-1.343 5.657z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>`,
             'Exercise': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>`,
@@ -253,7 +283,7 @@
             'Workshop': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>`,
             'ECLSS': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M5 5a7 7 0 0110.606.394M20 20v-5h-5m-1-1a7 7 0 01-10.606-.394" /></svg>`,
             'Waste Management': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`,
-            'Laboratory': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547a2 2 0 00-.547 1.806l.477 2.387a6 6 0 00.517 3.86l.158.318a6 6 0 003.86.517l2.387.477a2 2 0 001.806-.547a2 2 0 00.547-1.806l-.477-2.387a6 6 0 00-.517-3.86l-.158-.318z" /><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 10.25l1.5 1.5m0 0l-1.5 1.5m1.5-1.5h-3m-6 0l-1.5-1.5m0 0l1.5-1.5m-1.5 1.5h3" /></svg>`,
+            'Science Lab': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547a2 2 0 00-.547 1.806l.477 2.387a6 6 0 00.517 3.86l.158.318a6 6 0 003.86.517l2.387.477a2 2 0 001.806-.547a2 2 0 00.547-1.806l-.477-2.387a6 6 0 00-.517-3.86l-.158-.318z" /><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 10.25l1.5 1.5m0 0l-1.5 1.5m1.5-1.5h-3m-6 0l-1.5-1.5m0 0l1.5-1.5m-1.5 1.5h3" /></svg>`,
             'Greenhouse': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.121 15.879A3 3 0 0112.025 18a3 3 0 01-2.096-2.121m0 0A3 3 0 0012.025 12a3 3 0 002.096-2.121m-4.192 0A3 3 0 0112.025 6a3 3 0 012.096 2.121m0 0A3 3 0 0016.12 12a3 3 0 00-2.096 2.121" /></svg>`,
             'Airlock': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>`,
             'default': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>`
@@ -266,19 +296,22 @@
 
         const SHAPE_RATIONALES = {
             'cylinder': 'Excellent for containing internal pressure. Maximizes usable volume within rocket fairing limitations, making it a common choice for orbital modules.',
-            'inflatable': 'Provides a massive pressurized volume for a very small launch mass and size. Flexible fabric becomes rigid when inflated, ideal for large living areas on long missions.',
+            'inflatable': 'Provides a massive pressurized volume for a very small launch mass and size. The flexible fabric becomes rigid when inflated, ideal for large living areas on long missions.',
             'torus': 'Designed to generate artificial gravity through rotation (centripetal force). This is crucial for mitigating the long-term negative health effects of microgravity on the crew.',
             'dome': 'Geodesic domes are incredibly strong for their weight, distributing stress efficiently. They are ideal for planetary surfaces, resisting gravity and atmospheric pressure while providing a large, open interior space.',
-            'connector': 'While less efficient for pressure, its rectangular shape is perfect for modularity. It allows easy connection between other modules to build complex surface bases with defined interior spaces.'
+            'connector': 'While less efficient for pressure, its rectangular shape is perfect for modularity. It allows for the easy connection between other modules to build complex surface bases with defined interior spaces.'
         };
 
-        const ESSENTIAL_MODULES = ['Quarters', 'Hygiene', 'Galley', 'ECLSS', 'Recreation', 'Storage'];
+        const ESSENTIAL_MODULES = ['Crew Quarters', 'Hygiene', 'Galley', 'ECLSS', 'Recreation', 'Storage'];
         const OXYGEN_PER_PERSON_L_DAY = 588;
         const ACTIVE_SHELL_COLOR = 0x4a5568;
         const COMPLETED_SHELL_COLOR = 0xd1d5db;
+        const INITIAL_CAMERA_POS = new THREE.Vector3(20, 20, 25);
 
         // --- Core Three.js Components ---
-        let scene, camera, renderer, orbitControls, transformControls, raycaster;
+        let scene, renderer, orbitControls, transformControls, raycaster;
+        let perspectiveCamera, orthographicCamera, activeCamera;
+        let connectionsGroup, placementGrid;
         const pointer = new THREE.Vector2();
         let groundPlane, surfaceFeatures;
         const internalModules = [];
@@ -286,10 +319,6 @@
 
         // --- DOM Elements ---
         const canvasContainer = document.getElementById('canvas-container');
-        const crewSizeSlider = document.getElementById('crew-size');
-        const crewSizeValue = document.getElementById('crew-size-value');
-        const missionDurationSlider = document.getElementById('mission-duration');
-        const missionDurationValue = document.getElementById('mission-duration-value');
         const habitatShapeSelect = document.getElementById('habitat-shape');
         const totalVolumeEl = document.getElementById('total-volume');
         const pressurizedVolumeEl = document.getElementById('pressurized-volume');
@@ -306,25 +335,47 @@
         const engineeringRationaleEl = document.getElementById('engineering-rationale');
         const rationaleShapeEl = document.getElementById('rationale-shape');
         const rationaleTextEl = document.getElementById('rationale-text');
+        const buildModeHelp = document.getElementById('build-mode-help');
+        const viewToggleBtn = document.getElementById('view-toggle-btn');
+        const resetCameraBtn = document.getElementById('reset-camera-btn');
 
         // --- State ---
         let missionParams = { crewSize: 4, duration: 365, environment: 'orbit' };
+        let nextLevelId = 1; // Start next ID at 1
         let levelConfigs = [
-            { id: 0, shape: 'cylinder', radius: 4, length: 8, width: 8, height: 4, torusRadius: 8, tubeRadius: 2, volume: 0, group: null },
-            { id: 1, shape: 'cylinder', radius: 4, length: 8, width: 8, height: 4, torusRadius: 8, tubeRadius: 2, volume: 0, group: null },
-            { id: 2, shape: 'cylinder', radius: 4, length: 8, width: 8, height: 4, torusRadius: 8, tubeRadius: 2, volume: 0, group: null },
-            { id: 3, shape: 'cylinder', radius: 4, length: 8, width: 8, height: 4, torusRadius: 8, tubeRadius: 2, volume: 0, group: null },
-            { id: 4, shape: 'cylinder', radius: 4, length: 8, width: 8, height: 4, torusRadius: 8, tubeRadius: 2, volume: 0, group: null }
+            // Start with one default level
+            { id: 0, shape: 'cylinder', radius: 4, length: 8, width: 8, height: 4, torusRadius: 8, tubeRadius: 2, volume: 0, group: null, parent: null },
         ];
-        let designState = { activeLevel: 0, snapGridSize: 0.5, designMode: 'layout' };
+        let designState = { 
+            activeLevelId: 0, 
+            snapGridSize: 0.5, 
+            designMode: 'layout', 
+            linkMode: false, 
+            firstLinkLevel: null,
+            is2DView: false,
+            removalMode: false,
+        };
 
         // --- Initialization ---
         function init() {
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, canvasContainer.clientWidth / canvasContainer.clientHeight, 0.1, 1000);
-            camera.position.set(20, 20, 25);
+            // Read mission parameters from localStorage passed from setup.html
+            const savedCrewSize = localStorage.getItem('missionCrewSize');
+            const savedMissionDuration = localStorage.getItem('missionDuration');
 
-            renderer = new THREE.WebGLRenderer({ antialias: true });
+            if (savedCrewSize && savedMissionDuration) {
+                missionParams.crewSize = parseInt(savedCrewSize, 10);
+                missionParams.duration = parseInt(savedMissionDuration, 10);
+
+                // Clean up localStorage so it doesn't persist on refresh
+                localStorage.removeItem('missionCrewSize');
+                localStorage.removeItem('missionDuration');
+            }
+
+
+            scene = new THREE.Scene();
+            setupCameras();
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.localClippingEnabled = true;
             renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
@@ -332,15 +383,50 @@
 
             raycaster = new THREE.Raycaster();
 
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
             scene.add(ambientLight);
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
             directionalLight.position.set(15, 20, 10);
             scene.add(directionalLight);
+            
+            connectionsGroup = new THREE.Group();
+            scene.add(connectionsGroup);
 
-            orbitControls = new OrbitControls(camera, renderer.domElement);
+            setupControls();
+            
+            loadAssets();
+            setupUI();
+            createPlacementGrid();
+            createHabitatShells();
+            runAnalysis();
+            animate();
+
+            // Event Listeners
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('keydown', onKeyDown);
+            canvasContainer.addEventListener('pointerdown', onCanvasClick);
+            canvasContainer.addEventListener('dragover', onDragOver);
+            canvasContainer.addEventListener('drop', onDrop);
+        }
+        
+        function setupCameras() {
+            const aspect = canvasContainer.clientWidth / canvasContainer.clientHeight;
+            perspectiveCamera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
+            perspectiveCamera.position.copy(INITIAL_CAMERA_POS);
+            
+            const frustumSize = 30;
+            orthographicCamera = new THREE.OrthographicCamera(frustumSize * aspect / -2, frustumSize * aspect / 2, frustumSize / 2, frustumSize / -2, 0.1, 1000);
+            orthographicCamera.position.set(0, 50, 0);
+            orthographicCamera.lookAt(scene.position);
+            
+            activeCamera = perspectiveCamera;
+        }
+
+        function setupControls() {
+            orbitControls = new OrbitControls(activeCamera, renderer.domElement);
             orbitControls.enableDamping = true;
-            transformControls = new TransformControls(camera, renderer.domElement);
+
+            transformControls = new TransformControls(activeCamera, renderer.domElement);
             scene.add(transformControls);
             transformControls.addEventListener('dragging-changed', event => { 
                 orbitControls.enabled = !event.value; 
@@ -352,25 +438,19 @@
             });
             transformControls.addEventListener('objectChange', () => {
                 const selectedObject = transformControls.object;
-                if(selectedObject && selectedObject.userData.isModule) {
+                if (!selectedObject) return;
+
+                if (selectedObject.userData.isModule) {
+                    constrainModulePosition(selectedObject);
                     const box = new THREE.Box3().setFromObject(selectedObject);
                     const size = box.getSize(new THREE.Vector3());
                     selectedObject.userData.volume = size.x * size.y * size.z;
                 }
+                updateConnectionsVisuals();
                 runAnalysis();
             });
-            
-            loadAssets();
-            setupUI();
-            createHabitatShells();
-            runAnalysis();
-            animate();
-
-            window.addEventListener('resize', onWindowResize);
-            window.addEventListener('keydown', onKeyDown);
-            canvasContainer.addEventListener('click', onCanvasClick);
         }
-        
+
         function loadAssets() {
             const loadingManager = new THREE.LoadingManager(() => {
                 document.getElementById('loading-overlay').style.display = 'none';
@@ -399,6 +479,12 @@
             createSurfaceFeatures();
             updateSceneEnvironment();
         }
+        
+        function createPlacementGrid() {
+            placementGrid = new THREE.GridHelper(100, 200, 0x4f46e5, 0x444444);
+            placementGrid.visible = false;
+            scene.add(placementGrid);
+        }
 
         function createSurfaceFeatures() {
             surfaceFeatures = new THREE.Group();
@@ -418,63 +504,144 @@
                 surfaceFeatures.add(rock);
             }
         }
+        
+        // --- Event Handlers & User Interaction ---
+        function onWindowResize() {
+            const aspect = canvasContainer.clientWidth / canvasContainer.clientHeight;
+            perspectiveCamera.aspect = aspect;
+            perspectiveCamera.updateProjectionMatrix();
 
-        function onWindowResize() { camera.aspect = canvasContainer.clientWidth / canvasContainer.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight); }
+            const frustumSize = 30;
+            orthographicCamera.left = frustumSize * aspect / -2;
+            orthographicCamera.right = frustumSize * aspect / 2;
+            orthographicCamera.top = frustumSize / 2;
+            orthographicCamera.bottom = frustumSize / -2;
+            orthographicCamera.updateProjectionMatrix();
+
+            renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+        }
+
         function onKeyDown(event) {
             switch(event.key.toLowerCase()) {
                 case 'w': transformControls.setMode('translate'); break;
                 case 'e': transformControls.setMode('rotate'); break;
                 case 's': transformControls.setMode('scale'); break;
-                case 'q': deleteSelectedObject(); break;
-                case 'escape': deselectObject(); break;
+                case 'q':
+                case 'delete':
+                    deleteSelectedObject();
+                    break;
+                case 'escape': 
+                    deselectObject();
+                    if (designState.linkMode) toggleLinkMode();
+                    if (designState.removalMode) toggleRemovalMode();
+                    break;
             }
         }
+        
         function onCanvasClick(event) {
-            if (designState.designMode !== 'build' || transformControls.dragging) return;
-            pointer.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
-            pointer.y = - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
-            raycaster.setFromCamera(pointer, camera);
-            const habitatShellMeshes = levelConfigs.map(c => c.group.userData.shellMesh).filter(m => m);
+            if (transformControls.dragging) return;
+            
+            pointer.x = (event.offsetX / renderer.domElement.clientWidth) * 2 - 1;
+            pointer.y = - (event.offsetY / renderer.domElement.clientHeight) * 2 + 1;
+            raycaster.setFromCamera(pointer, activeCamera);
+
+            if (designState.designMode === 'layout') {
+                const moduleMeshes = internalModules.filter(m => m.visible);
+                const intersectsModules = raycaster.intersectObjects(moduleMeshes);
+                if (intersectsModules.length > 0) {
+                    selectObject(intersectsModules[0].object);
+                    return;
+                }
+            }
+            
+            const habitatShellMeshes = levelConfigs.map(c => c.group?.userData.shellMesh).filter(m => m);
+            if(habitatShellMeshes.length === 0) return;
+
             const intersects = raycaster.intersectObjects(habitatShellMeshes);
             if (intersects.length > 0) {
                 const shellGroup = intersects[0].object.parent;
-                if (shellGroup) {
-                    selectObject(shellGroup);
+                if (shellGroup && shellGroup.userData.levelId !== undefined) {
+                    const levelId = shellGroup.userData.levelId;
+                    if (designState.designMode === 'build') {
+                        if (designState.linkMode) {
+                            handleLinkClick(levelId);
+                        } else {
+                            let rootParent = shellGroup;
+                            let rootConfig = levelConfigs.find(c => c.id === levelId);
+                            while (rootConfig && rootConfig.parent !== null) {
+                                rootConfig = levelConfigs.find(c => c.id === rootConfig.parent);
+                                rootParent = rootConfig.group;
+                            }
+                            selectObject(rootParent);
+                        }
+                    }
                 }
+            } else {
+                 if (!transformControls.dragging) {
+                      deselectObject();
+                 }
             }
+        }
+        
+        function onDragOver(event) {
+            event.preventDefault();
+        }
+
+        function onDrop(event) {
+            event.preventDefault();
+            if (designState.designMode !== 'layout') return;
+
+            const moduleName = event.dataTransfer.getData("text/plain");
+            const config = MODULE_TYPES[moduleName];
+            if (!config) return;
+
+            pointer.x = (event.offsetX / renderer.domElement.clientWidth) * 2 - 1;
+            pointer.y = - (event.offsetY / renderer.domElement.clientHeight) * 2 + 1;
+            raycaster.setFromCamera(pointer, activeCamera);
+
+            const activeLevelConfig = levelConfigs.find(c => c.id === designState.activeLevelId);
+            const activeLevelGroup = activeLevelConfig?.group;
+            if (!activeLevelGroup) return;
+
+            const localPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), activeLevelGroup.userData.height / 2);
+            const worldPlane = localPlane.clone().applyMatrix4(activeLevelGroup.matrixWorld);
+            
+            const intersectPoint = new THREE.Vector3();
+            raycaster.ray.intersectPlane(worldPlane, intersectPoint);
+            
+            if (intersectPoint) {
+                addFunctionalModule(moduleName, config, intersectPoint);
+            }
+            canvasContainer.addEventListener('drop', onDrop);
         }
         
         function setupUI() {
             document.querySelectorAll('input[name="environment"]').forEach(radio => radio.addEventListener('change', (e) => { missionParams.environment = e.target.value; updateHabitatShapeOptions(); updateSceneEnvironment(); createHabitatShells(); }));
-            document.querySelectorAll('input[name="design-mode"]').forEach(radio => radio.addEventListener('change', (e) => { designState.designMode = e.target.value; deselectObject(); }));
-            crewSizeSlider.addEventListener('input', e => { missionParams.crewSize = parseInt(e.target.value); crewSizeValue.textContent = missionParams.crewSize; runAnalysis(); });
-            missionDurationSlider.addEventListener('input', e => { missionParams.duration = parseInt(e.target.value); missionDurationValue.textContent = missionParams.duration; runAnalysis(); });
-            habitatShapeSelect.addEventListener('change', e => { levelConfigs[designState.activeLevel].shape = e.target.value; createHabitatShells(); });
-            document.getElementById('level-selector').addEventListener('click', e => {
-                if (e.target.tagName === 'BUTTON') {
-                    designState.activeLevel = parseInt(e.target.dataset.level);
-                    document.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('active'));
-                    e.target.classList.add('active');
-                    updateHabitatShellControls();
-                    updateLevelView();
+            document.querySelectorAll('input[name="design-mode"]').forEach(radio => radio.addEventListener('change', (e) => { 
+                designState.designMode = e.target.value; 
+                deselectObject(); 
+                if (designState.designMode === 'build') {
+                    buildModeHelp.classList.remove('hidden');
+                } else {
+                    buildModeHelp.classList.add('hidden');
                 }
-            });
-            document.getElementById('clear-modules-btn').addEventListener('click', clearAllModules);
-            updateHabitatShapeOptions();
+                updateLevelView();
+                if (designState.linkMode) toggleLinkMode();
+            }));
             
             const modulePalette = document.getElementById('module-palette');
             modulePalette.innerHTML = '';
             Object.keys(MODULE_TYPES).forEach(name => {
                 const config = MODULE_TYPES[name];
-                const button = document.createElement('button');
-                
+                const button = document.createElement('div');
                 const iconSVG = MODULE_ICONS[name] || MODULE_ICONS['default'];
                 const hexColor = `#${new THREE.Color(config.color).getHexString()}`;
 
+                button.draggable = true;
+                button.dataset.moduleName = name;
                 button.title = `${name} - Vol/Crew: ${config.volumePerCrew} m³`;
-                button.className = 'flex flex-col items-center justify-center p-2 bg-gray-700 rounded-lg text-xs font-medium text-gray-200 transition-all duration-200 transform hover:scale-105 hover:shadow-lg border-2 border-transparent';
+                button.className = 'module-button flex flex-col items-center justify-center p-2 bg-gray-700 rounded-lg text-xs font-medium text-gray-200 transition-all duration-200 transform hover:scale-105 hover:shadow-lg border-2 border-transparent cursor-grab';
                 
-                // Usamos uma variável CSS para a cor da borda no hover
                 button.style.setProperty('--module-color', hexColor);
                 button.onmouseenter = () => button.style.borderColor = button.style.getPropertyValue('--module-color');
                 button.onmouseleave = () => button.style.borderColor = 'transparent';
@@ -484,125 +651,172 @@
                     <span>${name}</span>
                 `;
 
-                button.onclick = () => addFunctionalModule(name, config);
+                button.addEventListener('dragstart', (event) => {
+                    event.dataTransfer.setData("text/plain", event.currentTarget.dataset.moduleName);
+                    event.dataTransfer.effectAllowed = "copy";
+                });
+
+                button.addEventListener('click', (event) => {
+                    if (designState.designMode !== 'layout') return;
+                    const moduleName = event.currentTarget.dataset.moduleName;
+                    const config = MODULE_TYPES[moduleName];
+                    if (!config) return;
+
+                    const activeLevelGroup = levelConfigs.find(c => c.id === designState.activeLevelId)?.group;
+                    if (!activeLevelGroup) return;
+                    
+                    const centerPosition = new THREE.Vector3();
+                    activeLevelGroup.getWorldPosition(centerPosition);
+
+                    addFunctionalModule(moduleName, config, centerPosition);
+                });
+                
                 modulePalette.appendChild(button);
             });
 
+            viewToggleBtn.addEventListener('click', toggleView);
+            resetCameraBtn.addEventListener('click', resetCamera);
+            habitatShapeSelect.addEventListener('change', e => { levelConfigs.find(c => c.id === designState.activeLevelId).shape = e.target.value; createHabitatShells(); updateLevelSelectorVisuals(); });
+            document.getElementById('link-mode-btn').addEventListener('click', toggleLinkMode);
+            document.getElementById('unlink-all-btn').addEventListener('click', unlinkAllLevels);
+            document.getElementById('clear-modules-btn').addEventListener('click', clearAllModules);
+            document.getElementById('add-level-btn').addEventListener('click', addLevel);
+            document.getElementById('remove-level-btn').addEventListener('click', toggleRemovalMode);
+            document.getElementById('stack-levels-btn').addEventListener('click', stackAllLevels);
+            document.getElementById('delete-module-btn').addEventListener('click', deleteSelectedObject);
+            
+            updateHabitatShapeOptions();
             populateChecklist();
+            populateLevelSelectors();
             updateHabitatShellControls();
         }
-
-        function populateChecklist() {
-            checklistListEl.innerHTML = '';
-            ESSENTIAL_MODULES.forEach(name => {
-                const li = document.createElement('li');
-                li.id = `checklist-${name.replace(/\s+/g, '-')}`;
-                li.innerHTML = `<span class="mr-2">&#10008;</span> ${name}`;
-                li.className = 'text-red-400';
-                checklistListEl.appendChild(li);
-            });
-        }
         
-        function updateHabitatShapeOptions() {
-            const currentShapes = HABITAT_SHAPES[missionParams.environment];
-            habitatShapeSelect.innerHTML = '';
-            let shapeNames = {};
-             Object.entries(currentShapes).forEach(([displayName, value]) => {
-                const option = document.createElement('option');
-                option.value = value;
-                option.textContent = displayName;
-                habitatShapeSelect.appendChild(option);
-                shapeNames[value] = displayName;
+        // --- Core Application Logic ---
+        function addLevel() {
+            if (levelConfigs.length >= 10) {
+                updateAlertsUI(new Set(["Maximum number of levels (10) reached."]));
+                setTimeout(() => runAnalysis(), 3000);
+                return;
+            }
+            const newId = nextLevelId++;
+            levelConfigs.push({
+                id: newId, shape: 'cylinder', radius: 4, length: 8, width: 8, height: 4, torusRadius: 8, tubeRadius: 2, volume: 0, group: null, parent: null
             });
-            scene.userData.shapeNames = shapeNames;
+
+            createHabitatShells(); 
+            designState.activeLevelId = newId;
+            populateLevelSelectors(); 
+            updateLevelView();
+            updateHabitatShellControls();
+            document.querySelector(`.level-btn[data-level-id="${newId}"]`).classList.add('active');
         }
 
-        function updateHabitatShellControls() {
-            const activeConfig = levelConfigs[designState.activeLevel];
-            habitatShapeSelect.value = activeConfig.shape;
-            updateDimensionControls();
-        }
+        function removeSpecificLevel(levelIdToRemove) {
+            if (levelConfigs.length <= 1) {
+                updateAlertsUI(new Set(["Cannot remove the last level."]));
+                setTimeout(() => runAnalysis(), 3000);
+                return;
+            }
+            const configToRemove = levelConfigs.find(c => c.id === levelIdToRemove);
+            if (!configToRemove) return;
 
-        function updateDimensionControls() {
-            const container = document.getElementById('dimension-controls');
-            container.innerHTML = '';
-            const activeConfig = levelConfigs[designState.activeLevel];
-
-            const createSlider = (id, label, min, max, value, step) => {
-                const wrapper = document.createElement('div');
-                const flex = document.createElement('div');
-                flex.className = 'flex items-center justify-between';
-                flex.innerHTML = `<label for="${id}" class="text-sm">${label}:</label><span id="${id}-value" class="font-mono text-indigo-400">${value}</span>`;
-                const slider = document.createElement('input');
-                slider.type = 'range'; slider.id = id; slider.min = min; slider.max = max; slider.value = value; slider.step = step;
-                slider.className = 'w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb mt-1';
-                wrapper.appendChild(flex);
-                wrapper.appendChild(slider);
-                return { wrapper, slider };
-            };
-
-            const shape = activeConfig.shape;
-            if (shape === 'cylinder' || shape === 'inflatable' || shape === 'dome') {
-                const r = createSlider('radius', 'Radius (m)', 2, 10, activeConfig.radius, 0.1);
-                container.appendChild(r.wrapper);
-                r.slider.addEventListener('input', e => { activeConfig.radius = parseFloat(e.target.value); document.getElementById('radius-value').textContent = activeConfig.radius.toFixed(1); createHabitatShells(); });
-                if (shape !== 'dome') {
-                     const l = createSlider('length', 'Length/Height (m)', 2, 20, activeConfig.length, 0.1);
-                     container.appendChild(l.wrapper);
-                     l.slider.addEventListener('input', e => { activeConfig.length = parseFloat(e.target.value); document.getElementById('length-value').textContent = activeConfig.length.toFixed(1); createHabitatShells(); });
+            levelConfigs.forEach(config => {
+                if (config.parent === levelIdToRemove) {
+                    scene.attach(config.group);
+                    config.parent = null;
                 }
-            } else if (shape === 'torus') {
-                const tr = createSlider('torusRadius', 'Torus Radius (m)', 4, 20, activeConfig.torusRadius, 0.1);
-                container.appendChild(tr.wrapper);
-                tr.slider.addEventListener('input', e => { activeConfig.torusRadius = parseFloat(e.target.value); document.getElementById('torusRadius-value').textContent = activeConfig.torusRadius.toFixed(1); createHabitatShells(); });
-                const tur = createSlider('tubeRadius', 'Tube Radius (m)', 1, 5, activeConfig.tubeRadius, 0.1);
-                container.appendChild(tur.wrapper);
-                tur.slider.addEventListener('input', e => { activeConfig.tubeRadius = parseFloat(e.target.value); document.getElementById('tubeRadius-value').textContent = activeConfig.tubeRadius.toFixed(1); createHabitatShells(); });
-            } else if (shape === 'connector') {
-                const w = createSlider('width', 'Width (m)', 2, 20, activeConfig.width, 0.1);
-                container.appendChild(w.wrapper);
-                w.slider.addEventListener('input', e => { activeConfig.width = parseFloat(e.target.value); document.getElementById('width-value').textContent = activeConfig.width.toFixed(1); createHabitatShells(); });
-                const l = createSlider('length', 'Length (m)', 2, 20, activeConfig.length, 0.1);
-                container.appendChild(l.wrapper);
-                l.slider.addEventListener('input', e => { activeConfig.length = parseFloat(e.target.value); document.getElementById('length-value').textContent = activeConfig.length.toFixed(1); createHabitatShells(); });
-                const h = createSlider('height', 'Height (m)', 2, 10, activeConfig.height, 0.1);
-                container.appendChild(h.wrapper);
-                h.slider.addEventListener('input', e => { activeConfig.height = parseFloat(e.target.value); document.getElementById('height-value').textContent = activeConfig.height.toFixed(1); createHabitatShells(); });
+            });
+
+            [...internalModules].forEach(m => {
+                if(m.userData.level === levelIdToRemove) {
+                    const index = internalModules.indexOf(m);
+                    if (index > -1) internalModules.splice(index, 1);
+                }
+            });
+            
+            if (configToRemove.group) {
+                if (transformControls.object === configToRemove.group) deselectObject();
+                while(configToRemove.group.children.length > 0) configToRemove.group.remove(configToRemove.group.children[0]);
+                scene.remove(configToRemove.group);
             }
+
+            const configIndex = levelConfigs.findIndex(c => c.id === levelIdToRemove);
+            if (configIndex > -1) levelConfigs.splice(configIndex, 1);
+            
+            if(designState.activeLevelId === levelIdToRemove) {
+                designState.activeLevelId = levelConfigs.length > 0 ? levelConfigs[0].id : null;
+            }
+
+            populateLevelSelectors();
+            updateLevelView();
+            updateConnectionsVisuals();
+            runAnalysis();
         }
         
-        function updateSceneEnvironment() {
-            if (missionParams.environment === 'orbit') {
-                scene.background = scene.userData.skyboxTexture || new THREE.Color(0x111827);
-                scene.fog = null;
-                if(scene.children.includes(groundPlane)) scene.remove(groundPlane);
-                if(scene.children.includes(surfaceFeatures)) scene.remove(surfaceFeatures);
-                orbitControls.maxPolarAngle = Math.PI;
-            } else { // surface
-                scene.background = new THREE.Color(0x000000);
-                scene.fog = new THREE.FogExp2(0x935837, 0.005);
-                if(!scene.children.includes(groundPlane)) scene.add(groundPlane);
-                if(!scene.children.includes(surfaceFeatures)) scene.add(surfaceFeatures);
-                orbitControls.maxPolarAngle = Math.PI / 2 - 0.05;
-            }
+        function stackAllLevels() {
+            deselectObject();
+            unlinkAllLevels(); 
+            let currentY = 0;
+            const rootLevels = levelConfigs.filter(c => c.parent === null);
+
+            rootLevels.forEach(config => {
+                if (config.group) {
+                    const shellHeight = config.group.userData.height;
+                    const yPosition = missionParams.environment === 'surface' ? shellHeight / 2 : currentY + shellHeight / 2;
+                    config.group.position.set(0, yPosition, 0);
+                    config.group.rotation.set(0, 0, 0);
+                    currentY += shellHeight;
+                }
+            });
+        }
+        
+        function addFunctionalModule(name, config, position) {
+            const activeGroup = levelConfigs.find(c => c.id === designState.activeLevelId)?.group;
+            if (!activeGroup) return;
+
+            const geometry = new THREE.BoxGeometry(2, 2, 2);
+            const material = new THREE.MeshStandardMaterial({ color: config.color, clippingPlanes: clippingPlanes });
+            const module = new THREE.Mesh(geometry, material);
+            
+            const localPosition = activeGroup.worldToLocal(position.clone());
+            module.position.copy(localPosition);
+            
+            module.position.y = (-activeGroup.userData.height / 2) + 1; 
+            
+            module.userData = { name, config, volume: 8, requiredVolume: 0, status: 'valid', level: designState.activeLevelId, isModule: true };
+            
+            activeGroup.add(module);
+            internalModules.push(module);
+            snapToGrid(module);
+            selectObject(module);
+            runAnalysis();
         }
 
         function createHabitatShells() {
-            const isFirstCreation = levelConfigs.every(c => c.group === null);
-            let initialXOffset = -30;
-
-            levelConfigs.forEach((config, index) => {
-                const oldPosition = config.group ? config.group.position.clone() : null;
-                const oldRotation = config.group ? config.group.rotation.clone() : null;
-
-                if (config.group) {
-                    scene.remove(config.group);
+            levelConfigs.forEach(config => {
+                if (config.parent !== null && config.group) {
+                    scene.attach(config.group);
                 }
-                config.group = new THREE.Group();
-                config.group.userData.levelId = index;
+            });
+
+            const isFirstCreation = !levelConfigs.some(c => c.group !== null);
+            let initialXOffset = -((levelConfigs.length - 1) * 10);
+
+            levelConfigs.forEach((config) => {
+                 const oldPosition = config.group ? config.group.position.clone() : null;
+                 const oldRotation = config.group ? config.group.rotation.clone() : null;
+                 const oldScale = config.group ? config.group.scale.clone() : null;
+
+                 if (config.group) {
+                    if (config.group.userData.shellMesh) config.group.remove(config.group.userData.shellMesh);
+                    if (config.group.userData.wireframeMesh) config.group.remove(config.group.userData.wireframeMesh);
+                 } else {
+                    config.group = new THREE.Group();
+                    scene.add(config.group);
+                 }
+                 config.group.userData.levelId = config.id;
 
                 let geometry, volume = 0, levelHeight = 0;
-
                 const { shape, radius, length, width, height, torusRadius, tubeRadius } = config;
                 switch (shape) {
                     case 'cylinder': geometry = new THREE.CylinderGeometry(radius, radius, length, 64); volume = Math.PI * radius * radius * length; levelHeight = length; break;
@@ -613,6 +827,7 @@
                     default: geometry = new THREE.BoxGeometry(1,1,1); levelHeight = 1;
                 }
                 config.volume = volume;
+                config.group.userData.height = levelHeight;
 
                 const material = new THREE.MeshStandardMaterial({ color: ACTIVE_SHELL_COLOR, transparent: true, opacity: 0.1, side: THREE.DoubleSide, clippingPlanes: clippingPlanes, clipShadows: true });
                 const shellMesh = new THREE.Mesh(geometry, material);
@@ -624,224 +839,303 @@
                 const wireframeMat = new THREE.LineBasicMaterial({ color: 0x6366f1, transparent: true, opacity: 0.2, clippingPlanes: clippingPlanes });
                 const wireframe = new THREE.LineSegments(wireframeGeo, wireframeMat);
                 config.group.add(wireframe);
-
-                scene.add(config.group);
+                config.group.userData.wireframeMesh = wireframe;
                 
-                if (isFirstCreation) {
+                 if (!oldPosition) {
                     config.group.position.set(initialXOffset, levelHeight / 2, 0);
-                     if (missionParams.environment === 'surface') {
-                        config.group.position.y = levelHeight / 2;
-                    }
-                    initialXOffset += 15;
-                } else if (oldPosition) {
+                    initialXOffset += 20;
+                 } else {
                     config.group.position.copy(oldPosition);
                     config.group.rotation.copy(oldRotation);
-                }
+                    config.group.scale.copy(oldScale);
+                 }
             });
             
+            reparentLevels();
             updateDimensionControls();
             updateLevelView();
             runAnalysis();
         }
-        
-        function addFunctionalModule(name, config) {
-            const activeGroup = levelConfigs[designState.activeLevel].group;
-            if (!activeGroup) return;
 
-            const geometry = new THREE.BoxGeometry(2, 2, 2);
-            const material = new THREE.MeshStandardMaterial({ color: config.color, clippingPlanes: clippingPlanes });
-            const module = new THREE.Mesh(geometry, material);
-            
-            module.position.set(0, 0, 0); // Position relative to group center
-            module.userData = { name, config, volume: 8, requiredVolume: 0, status: 'valid', level: designState.activeLevel, isModule: true };
-            
-            activeGroup.add(module);
-            internalModules.push(module);
-            selectObject(module);
+        function constrainModuleY(object) {
+            if (!object || !object.parent || !object.userData.isModule) return;
+            const parentHeight = object.parent.userData.height || 0;
+            const moduleHeight = (object.geometry.parameters.height || 2) * object.scale.y;
+            const floorY = -parentHeight / 2;
+            const ceilingY = parentHeight / 2;
+            const minY = floorY + moduleHeight / 2;
+            const maxY = ceilingY - moduleHeight / 2;
+            object.position.y = Math.max(minY, Math.min(object.position.y, maxY));
+        }
+
+        function constrainModuleXZ(object) {
+            if (!object || !object.parent || !object.userData.isModule) return;
+            const levelId = object.userData.level;
+            const levelConfig = levelConfigs.find(c => c.id === levelId);
+            if (!levelConfig) return;
+
+            const moduleBox = new THREE.Box3().setFromObject(object);
+            const moduleSize = moduleBox.getSize(new THREE.Vector3());
+            const moduleRadius = Math.sqrt((moduleSize.x / 2)**2 + (moduleSize.z / 2)**2);
+            const shape = levelConfig.shape;
+
+            if (shape === 'cylinder' || shape === 'inflatable' || shape === 'dome') {
+                const habitatRadius = levelConfig.radius;
+                const maxDistance = habitatRadius - moduleRadius;
+                const distanceFromCenter = Math.sqrt(object.position.x**2 + object.position.z**2);
+                if (distanceFromCenter > maxDistance && distanceFromCenter > 0) {
+                    const ratio = maxDistance / distanceFromCenter;
+                    object.position.x *= ratio;
+                    object.position.z *= ratio;
+                }
+            } else if (shape === 'connector') {
+                const halfWidth = (levelConfig.width / 2) - (moduleSize.x / 2);
+                const halfLength = (levelConfig.length / 2) - (moduleSize.z / 2);
+                object.position.x = Math.max(-halfWidth, Math.min(object.position.x, halfWidth));
+                object.position.z = Math.max(-halfLength, Math.min(object.position.z, halfLength));
+            } else if (shape === 'torus') {
+                const tubeRadius = levelConfig.tubeRadius;
+                const torusRadius = levelConfig.torusRadius;
+                const modulePosXZ = new THREE.Vector2(object.position.x, object.position.z);
+                if (modulePosXZ.lengthSq() === 0) return;
+                const directionToModule = modulePosXZ.clone().normalize();
+                const ringCenter = directionToModule.clone().multiplyScalar(torusRadius);
+                const modulePos3D = object.position.clone();
+                const ringCenter3D = new THREE.Vector3(ringCenter.x, 0, ringCenter.y);
+                const vectorFromRingCenter = modulePos3D.sub(ringCenter3D);
+                const distanceToRingCenter = vectorFromRingCenter.length();
+                const maxTubeDistance = tubeRadius - moduleRadius;
+                if (distanceToRingCenter > maxTubeDistance) {
+                    vectorFromRingCenter.normalize().multiplyScalar(maxTubeDistance);
+                    const newPos = ringCenter3D.add(vectorFromRingCenter);
+                    object.position.copy(newPos);
+                }
+            }
+        }
+
+        function constrainModulePosition(object) {
+            constrainModuleY(object);
+            constrainModuleXZ(object);
+        }
+
+        function snapToGrid(object) {
+            if (!object || !object.parent) return;
+            const gridSize = designState.snapGridSize;
+            object.position.x = Math.round(object.position.x / gridSize) * gridSize;
+            object.position.z = Math.round(object.position.z / gridSize) * gridSize;
+            constrainModulePosition(object);
             runAnalysis();
         }
-        
+
         function updateLevelView() {
-            const activeGroup = levelConfigs[designState.activeLevel].group;
-            if (activeGroup) {
-                const box = new THREE.Box3().setFromObject(activeGroup);
-                clippingPlanes[0].constant = box.max.y;
+            const activeLevelConfig = levelConfigs.find(c => c.id === designState.activeLevelId);
+
+            if (designState.designMode === 'build') {
+                clippingPlanes[0].constant = 1000;
+                placementGrid.visible = false;
+            } else { 
+                const activeGroup = activeLevelConfig?.group;
+                if (activeGroup) {
+                    const box = new THREE.Box3().setFromObject(activeGroup);
+                    clippingPlanes[0].constant = box.max.y;
+                    const floorY = activeGroup.position.y - (activeGroup.userData.height / 2);
+                    placementGrid.position.y = floorY + 0.01;
+                    placementGrid.visible = !designState.is2DView;
+                } else {
+                     placementGrid.visible = false;
+                }
             }
 
-            levelConfigs.forEach((config, index) => {
+            levelConfigs.forEach((config) => {
                 const group = config.group;
                 if (!group) return;
                 const shellMesh = group.userData.shellMesh;
-                const isActive = index === designState.activeLevel;
-
+                const isActive = (config.id === designState.activeLevelId) && (designState.designMode === 'layout');
                 shellMesh.material.color.setHex(isActive ? ACTIVE_SHELL_COLOR : COMPLETED_SHELL_COLOR);
                 shellMesh.material.opacity = isActive ? 0.15 : 0.1;
-                group.children[1].material.opacity = isActive ? 0.3 : 0.2; // Wireframe
-
+                group.children.find(c => c.type === 'LineSegments').material.opacity = isActive ? 0.3 : 0.2;
                 group.children.forEach(child => {
                     if (child.userData.isModule) {
-                        child.visible = isActive;
+                        child.visible = isActive; 
                         if (transformControls.object === child && !isActive) {
-                           deselectObject();
+                            deselectObject();
                         }
                     }
                 });
             });
         }
         
-        function snapToGrid(object) {
-            if (!object) return;
-            const gridSize = designState.snapGridSize;
-            object.position.x = Math.round(object.position.x / gridSize) * gridSize;
-            object.position.z = Math.round(object.position.z / gridSize) * gridSize;
-            runAnalysis();
-        }
-
-        function clearAllModules() {
+        // --- View Management ---
+        function toggleView() {
+            designState.is2DView = !designState.is2DView;
             deselectObject();
-            [...internalModules].forEach(module => {
-                const parentGroup = module.parent;
-                if (parentGroup) {
-                    parentGroup.remove(module);
-                }
-            });
-            internalModules.length = 0;
-            runAnalysis();
-        }
-        
-        function selectObject(object) { 
-            if ((designState.designMode === 'layout' && object.userData.isModule) ||
-                (designState.designMode === 'build' && !object.userData.isModule)) {
-                transformControls.attach(object);
-                
-                selectedModuleInfoEl.classList.add('hidden');
-                engineeringRationaleEl.classList.add('hidden');
-
-                if (object.userData.isModule) {
-                    selectedModuleInfoEl.classList.remove('hidden');
-                    updateSelectedModuleInfo(object);
-                } else { 
-                    engineeringRationaleEl.classList.remove('hidden');
-                    updateEngineeringRationale(object);
-                }
+            if (designState.is2DView) {
+                activeCamera = orthographicCamera;
+                viewToggleBtn.textContent = '3D View';
+                orbitControls.enableRotate = false;
+                placementGrid.visible = false;
+            } else {
+                activeCamera = perspectiveCamera;
+                viewToggleBtn.textContent = '2D View';
+                orbitControls.enableRotate = true;
+                updateLevelView();
             }
+            orbitControls.object = activeCamera;
+            transformControls.camera = activeCamera;
+            orbitControls.reset();
+            onWindowResize();
         }
+
+        function resetCamera() {
+            if(designState.is2DView) toggleView();
+            orbitControls.reset();
+            perspectiveCamera.position.copy(INITIAL_CAMERA_POS);
+        }
+
+        function animate() { 
+            requestAnimationFrame(animate); 
+            orbitControls.update();
+            renderer.render(scene, activeCamera);
+        }
+
+        // --- UI & State Functions ---
+        function reparentLevels() { levelConfigs.forEach(config => { if (config.parent !== null) { const parentConfig = levelConfigs.find(p => p.id === config.parent); if (parentConfig && parentConfig.group) { parentConfig.group.attach(config.group); } } }); updateConnectionsVisuals(); }
         
-        function deselectObject() { 
-            transformControls.detach(); 
-            selectedModuleInfoEl.classList.add('hidden');
-            engineeringRationaleEl.classList.add('hidden');
-        }
-
-        function updateEngineeringRationale(habitatGroup) {
-            const levelId = habitatGroup.userData.levelId;
-            if (levelId === undefined) return;
-            
-            const config = levelConfigs[levelId];
-            const shapeName = scene.userData.shapeNames[config.shape] || config.shape;
-            
-            rationaleShapeEl.textContent = shapeName;
-            rationaleTextEl.textContent = SHAPE_RATIONALES[config.shape] || 'No rationale available for this shape.';
-        }
-
-        function deleteSelectedObject() { 
-            const selected = transformControls.object; 
-            if (selected && selected.userData.isModule) { 
-                const index = internalModules.indexOf(selected); 
-                if (index > -1) { 
-                    internalModules.splice(index, 1);
-                }
-                if (selected.parent) {
-                    selected.parent.remove(selected);
-                }
-                deselectObject(); 
-                runAnalysis(); 
-            }
-        }
-        
-        function runAnalysis() {
-            let totalModuleVolume = 0;
-            const alerts = new Set();
-            const presentModules = new Set(internalModules.map(m => m.userData.name));
-
-            internalModules.forEach(module => {
-                const { name, config, volume } = module.userData;
-                const { crewSize, duration } = missionParams;
-                let required = config.volumePerCrew * crewSize;
-                if(config.missionDurationFactor) { required += required * (duration / 365) * config.missionDurationFactor; }
-                module.userData.requiredVolume = required;
-                if (volume < required) { module.material.emissive.setHex(0xff0000); module.userData.status = 'too_small'; alerts.add(`${name} is undersized. Req: ${required.toFixed(1)} m³, Current: ${volume.toFixed(1)} m³.`); } 
-                else { module.material.emissive.setHex(0x000000); module.userData.status = 'valid'; }
-                totalModuleVolume += volume;
-            });
-            for (let i = 0; i < internalModules.length; i++) {
-                for (let j = i + 1; j < internalModules.length; j++) {
-                    const modA = internalModules[i];
-                    const modB = internalModules[j];
-                    if (modA.userData.level !== modB.userData.level) continue;
-                    
-                    const boxA = new THREE.Box3().setFromObject(modA, true);
-                    const boxB = new THREE.Box3().setFromObject(modB, true);
-                    
-                    if (boxA.intersectsBox(boxB)) {
-                        alerts.add(`Overlap detected between ${modA.userData.name} and ${modB.userData.name}.`);
-                        const warningsA = modA.userData.config.adjacencyWarning || [];
-                        const warningsB = modB.userData.config.adjacencyWarning || [];
-                        if (warningsA.includes(modB.userData.name)) { alerts.add(`Zoning: ${modA.userData.name} should not be adjacent to ${modB.userData.name}.`); }
-                        if (warningsB.includes(modA.userData.name)) { alerts.add(`Zoning: ${modB.userData.name} should not be adjacent to ${modA.userData.name}.`); }
-                    }
-                }
-            }
-            updateStatsUI(totalModuleVolume);
-            updateAlertsUI(alerts);
-            updateChecklistUI(presentModules);
-            updateOxygenAnalysisUI(missionParams.crewSize);
-            if (transformControls.object && transformControls.object.userData.isModule) { updateSelectedModuleInfo(transformControls.object); }
-        }
-
-        function updateOxygenAnalysisUI(crewSize) {
-            const requiredOxygen = crewSize * OXYGEN_PER_PERSON_L_DAY;
-            oxygenCrewSizeEl.textContent = crewSize;
-            oxygenRequiredEl.textContent = `${requiredOxygen.toFixed(0)} L/day`;
-        }
-
-        function updateChecklistUI(presentModules) {
-            ESSENTIAL_MODULES.forEach(name => {
-                const li = document.getElementById(`checklist-${name.replace(/\s+/g, '-')}`);
-                if (li) {
-                    if (presentModules.has(name)) {
-                        li.innerHTML = `<span class="mr-2">&#10004;</span> ${name}`;
-                        li.className = 'text-green-400';
+        function populateLevelSelectors() { 
+            const levelSelector = document.getElementById('level-selector'); 
+            levelSelector.innerHTML = ''; 
+            levelConfigs.forEach((config) => { 
+                const button = document.createElement('button'); 
+                button.dataset.levelId = config.id; 
+                button.className = 'level-btn flex flex-col items-center justify-center p-2 text-xs bg-gray-700 rounded-lg border-2 border-gray-600 hover:bg-gray-600 transition-colors'; 
+                button.innerHTML = `<div class="shape-icon w-8 h-8 mb-1"></div><span>Level ${config.id + 1}</span>`; 
+                button.addEventListener('click', () => { 
+                    const levelId = parseInt(button.dataset.levelId);
+                    if (designState.removalMode) {
+                        removeSpecificLevel(levelId);
+                        toggleRemovalMode(); 
                     } else {
-                        li.innerHTML = `<span class="mr-2">&#10008;</span> ${name}`;
-                        li.className = 'text-red-400';
+                        designState.activeLevelId = levelId; 
+                        document.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('active')); 
+                        button.classList.add('active'); 
+                        updateHabitatShellControls(); 
+                        updateLevelView(); 
+                    }
+                }); 
+                levelSelector.appendChild(button); 
+            }); 
+            const activeButton = document.querySelector(`.level-btn[data-level-id="${designState.activeLevelId}"]`); 
+            if(activeButton) activeButton.classList.add('active'); 
+            updateLevelSelectorVisuals(); 
+        }
+
+        function updateLevelSelectorVisuals() { const getShapeSVG = (shape) => { const stroke = 'currentColor'; switch (shape) { case 'cylinder': case 'inflatable': return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><ellipse cx="20" cy="8" rx="15" ry="5" stroke="${stroke}" fill="none" stroke-width="2"/><line x1="5" y1="8" x2="5" y2="32" stroke="${stroke}" stroke-width="2"/><line x1="35" y1="8" x2="35" y2="32" stroke="${stroke}" stroke-width="2"/><ellipse cx="20" cy="32" rx="15" ry="5" stroke="${stroke}" fill="none" stroke-width="2"/></svg>`; case 'dome': return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><path d="M 5 35 A 1 1 0 0 1 35 35 Z" stroke="${stroke}" fill="none" stroke-width="2"/><line x1="5" y1="35" x2="35" y2="35" stroke="${stroke}" stroke-width="2"/></svg>`; case 'torus': return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="15" stroke="${stroke}" fill="none" stroke-width="2"/><circle cx="20" cy="20" r="8" stroke="${stroke}" fill="none" stroke-width="2"/></svg>`; case 'connector': return `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="10" width="30" height="20" stroke="${stroke}" fill="none" stroke-width="2"/></svg>`; default: return ''; } }; document.querySelectorAll('.level-btn').forEach(btn => { const levelId = parseInt(btn.dataset.levelId); const config = levelConfigs.find(c => c.id === levelId); if(config) { btn.querySelector('.shape-icon').innerHTML = getShapeSVG(config.shape); } }); }
+        function populateChecklist() { checklistListEl.innerHTML = ''; ESSENTIAL_MODULES.forEach(name => { const li = document.createElement('li'); li.id = `checklist-${name.replace(/\s+/g, '-')}`; li.innerHTML = `<span class="mr-2">&#10008;</span> ${name}`; li.className = 'text-red-400'; checklistListEl.appendChild(li); }); }
+        function updateHabitatShapeOptions() { const currentShapes = HABITAT_SHAPES[missionParams.environment]; habitatShapeSelect.innerHTML = ''; let shapeNames = {}; Object.entries(currentShapes).forEach(([displayName, value]) => { const option = document.createElement('option'); option.value = value; option.textContent = displayName; habitatShapeSelect.appendChild(option); shapeNames[value] = displayName; }); scene.userData.shapeNames = shapeNames; }
+        function updateHabitatShellControls() { const activeConfig = levelConfigs.find(c => c.id === designState.activeLevelId); if(!activeConfig) return; habitatShapeSelect.value = activeConfig.shape; updateDimensionControls(); }
+        function updateDimensionControls() { const container = document.getElementById('dimension-controls'); container.innerHTML = ''; const activeConfig = levelConfigs.find(c => c.id === designState.activeLevelId); if(!activeConfig) return; const createSlider = (id, label, min, max, value, step) => { const wrapper = document.createElement('div'); const flex = document.createElement('div'); flex.className = 'flex items-center justify-between'; flex.innerHTML = `<label for="${id}" class="text-sm">${label}:</label><span id="${id}-value" class="font-mono text-indigo-400">${value}</span>`; const slider = document.createElement('input'); slider.type = 'range'; slider.id = id; slider.min = min; slider.max = max; slider.value = value; slider.step = step; slider.className = 'w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb mt-1'; wrapper.appendChild(flex); wrapper.appendChild(slider); return { wrapper, slider }; }; const shape = activeConfig.shape; if (shape === 'cylinder' || shape === 'inflatable' || shape === 'dome') { const r = createSlider('radius', 'Radius (m)', 2, 10, activeConfig.radius, 0.1); container.appendChild(r.wrapper); r.slider.addEventListener('input', e => { activeConfig.radius = parseFloat(e.target.value); document.getElementById('radius-value').textContent = activeConfig.radius.toFixed(1); createHabitatShells(); }); if (shape !== 'dome') { const l = createSlider('length', 'Length (m)', 2, 20, activeConfig.length, 0.1); container.appendChild(l.wrapper); l.slider.addEventListener('input', e => { activeConfig.length = parseFloat(e.target.value); document.getElementById('length-value').textContent = activeConfig.length.toFixed(1); createHabitatShells(); }); } } else if (shape === 'torus') { const tr = createSlider('torusRadius', 'Torus Radius (m)', 4, 20, activeConfig.torusRadius, 0.1); container.appendChild(tr.wrapper); tr.slider.addEventListener('input', e => { activeConfig.torusRadius = parseFloat(e.target.value); document.getElementById('torusRadius-value').textContent = activeConfig.torusRadius.toFixed(1); createHabitatShells(); }); const tur = createSlider('tubeRadius', 'Tube Radius (m)', 1, 5, activeConfig.tubeRadius, 0.1); container.appendChild(tur.wrapper); tur.slider.addEventListener('input', e => { activeConfig.tubeRadius = parseFloat(e.target.value); document.getElementById('tubeRadius-value').textContent = activeConfig.tubeRadius.toFixed(1); createHabitatShells(); }); } else if (shape === 'connector') { const w = createSlider('width', 'Width (m)', 2, 20, activeConfig.width, 0.1); container.appendChild(w.wrapper); w.slider.addEventListener('input', e => { activeConfig.width = parseFloat(e.target.value); document.getElementById('width-value').textContent = activeConfig.width.toFixed(1); createHabitatShells(); }); const l = createSlider('length', 'Length (m)', 2, 20, activeConfig.length, 0.1); container.appendChild(l.wrapper); l.slider.addEventListener('input', e => { activeConfig.length = parseFloat(e.target.value); document.getElementById('length-value').textContent = activeConfig.length.toFixed(1); createHabitatShells(); }); const h = createSlider('height', 'Height (m)', 2, 10, activeConfig.height, 0.1); container.appendChild(h.wrapper); h.slider.addEventListener('input', e => { activeConfig.height = parseFloat(e.target.value); document.getElementById('height-value').textContent = activeConfig.height.toFixed(1); createHabitatShells(); }); } }
+        function updateSceneEnvironment() { if (missionParams.environment === 'orbit') { scene.background = scene.userData.skyboxTexture || new THREE.Color(0x111827); scene.fog = null; if(scene.children.includes(groundPlane)) scene.remove(groundPlane); if(scene.children.includes(surfaceFeatures)) scene.remove(surfaceFeatures); orbitControls.maxPolarAngle = Math.PI; } else { scene.background = new THREE.Color(0x000000); scene.fog = new THREE.FogExp2(0x935837, 0.005); if(!scene.children.includes(groundPlane)) scene.add(groundPlane); if(!scene.children.includes(surfaceFeatures)) scene.add(surfaceFeatures); orbitControls.maxPolarAngle = Math.PI / 2 - 0.05; } }
+        function clearAllModules() { deselectObject(); [...internalModules].forEach(module => { module.parent?.remove(module); }); internalModules.length = 0; runAnalysis(); }
+        function selectObject(object) { if ((designState.designMode === 'layout' && object.userData.isModule) || (designState.designMode === 'build' && !object.userData.isModule)) { transformControls.attach(object); selectedModuleInfoEl.classList.add('hidden'); engineeringRationaleEl.classList.add('hidden'); if (object.userData.isModule) { selectedModuleInfoEl.classList.remove('hidden'); updateSelectedModuleInfo(object); } else { engineeringRationaleEl.classList.remove('hidden'); updateEngineeringRationale(object); } } }
+        function deselectObject() { transformControls.detach(); selectedModuleInfoEl.classList.add('hidden'); engineeringRationaleEl.classList.add('hidden'); }
+        function updateEngineeringRationale(habitatGroup) { const levelId = habitatGroup.userData.levelId; if (levelId === undefined) return; const config = levelConfigs.find(c => c.id === levelId); if(!config) return; const shapeName = scene.userData.shapeNames[config.shape] || config.shape; rationaleShapeEl.textContent = shapeName; rationaleTextEl.textContent = SHAPE_RATIONALES[config.shape] || 'No rationale available for this shape.'; }
+        function deleteSelectedObject() { const selected = transformControls.object; if (!selected) return; if (selected.userData.isModule) { const index = internalModules.indexOf(selected); if (index > -1) internalModules.splice(index, 1); selected.parent?.remove(selected); deselectObject(); runAnalysis(); } }
+        function toggleLinkMode() { if (designState.designMode !== 'build') { updateAlertsUI(new Set(['Switch to Build Mode to link levels.'])); setTimeout(() => runAnalysis(), 3000); return; } designState.linkMode = !designState.linkMode; designState.firstLinkLevel = null; const linkBtn = document.getElementById('link-mode-btn'); const indicator = document.getElementById('link-mode-indicator'); document.querySelectorAll('.level-btn.linking-active').forEach(b => b.classList.remove('linking-active')); if (designState.linkMode) { linkBtn.textContent = 'Cancel'; linkBtn.classList.replace('bg-yellow-600', 'bg-gray-600'); indicator.classList.remove('hidden'); deselectObject(); } else { linkBtn.textContent = 'Link Levels'; linkBtn.classList.replace('bg-gray-600', 'bg-yellow-600'); indicator.classList.add('hidden'); } }
+        function handleLinkClick(levelId) { const btn = document.querySelector(`.level-btn[data-level-id="${levelId}"]`); if (designState.firstLinkLevel === null) { designState.firstLinkLevel = levelId; btn.classList.add('linking-active'); } else { if (designState.firstLinkLevel !== levelId) { linkLevels(designState.firstLinkLevel, levelId); toggleLinkMode(); } } }
+        function linkLevels(parentLevelId, childLevelId) { const parentConfig = levelConfigs.find(c => c.id === parentLevelId); const childConfig = levelConfigs.find(c => c.id === childLevelId); if (!parentConfig || !childConfig || parentLevelId === childLevelId || childConfig.parent !== null) return; let current = parentConfig; while(current.parent !== null) { if (current.parent === childLevelId) return; current = levelConfigs.find(c => c.id === current.parent); } parentConfig.group.attach(childConfig.group); childConfig.parent = parentLevelId; updateConnectionsVisuals(); }
+        function unlinkAllLevels() { levelConfigs.forEach(config => { if (config.parent !== null) { scene.attach(config.group); config.parent = null; } }); updateConnectionsVisuals(); }
+        
+        function toggleRemovalMode() {
+            designState.removalMode = !designState.removalMode;
+            const removeBtn = document.getElementById('remove-level-btn');
+            const indicator = document.getElementById('removal-mode-indicator');
+            const levelBtns = document.querySelectorAll('.level-btn');
+
+            if (designState.removalMode) {
+                removeBtn.textContent = 'Cancel';
+                removeBtn.classList.replace('bg-red-800', 'bg-gray-600');
+                removeBtn.classList.replace('hover:bg-red-700', 'hover:bg-gray-500');
+                indicator.classList.remove('hidden');
+                deselectObject();
+                levelBtns.forEach(btn => btn.classList.add('removing-active'));
+            } else {
+                removeBtn.textContent = 'Remove Level';
+                removeBtn.classList.replace('bg-gray-600', 'bg-red-800');
+                removeBtn.classList.replace('hover:bg-gray-500', 'hover:bg-red-700');
+                indicator.classList.add('hidden');
+                levelBtns.forEach(btn => btn.classList.remove('removing-active'));
+            }
+        }
+
+        function updateConnectionsVisuals() {
+            connectionsGroup.clear();
+            const corridorMaterial = new THREE.MeshStandardMaterial({ color: 0x4a5568, roughness: 0.4, metalness: 0.5 });
+            const flangeMaterial = new THREE.MeshStandardMaterial({ color: 0x2d3748, roughness: 0.8 });
+            const connectionRaycaster = new THREE.Raycaster();
+
+            levelConfigs.forEach(config => {
+                if (config.parent !== null) {
+                    const parentConfig = levelConfigs.find(c => c.id === config.parent);
+                    if (parentConfig && config.group && parentConfig.group) {
+                        const parentMesh = parentConfig.group.userData.shellMesh;
+                        const childMesh = config.group.userData.shellMesh;
+                        if (!parentMesh || !childMesh) return;
+                        const center1 = new THREE.Vector3();
+                        const center2 = new THREE.Vector3();
+                        parentMesh.getWorldPosition(center1);
+                        childMesh.getWorldPosition(center2);
+
+                        if (center1.equals(center2)) return;
+
+                        const directionToChild = new THREE.Vector3().subVectors(center2, center1).normalize();
+                        const directionToParent = new THREE.Vector3().subVectors(center1, center2).normalize();
+                        connectionRaycaster.set(center1, directionToChild);
+                        const intersectsParent = connectionRaycaster.intersectObject(parentMesh);
+                        const surfacePoint1 = intersectsParent.length > 0 ? intersectsParent[0].point : center1;
+                        connectionRaycaster.set(center2, directionToParent);
+                        const intersectsChild = connectionRaycaster.intersectObject(childMesh);
+                        const surfacePoint2 = intersectsChild.length > 0 ? intersectsChild[0].point : center2;
+                        const distance = surfacePoint1.distanceTo(surfacePoint2);
+                        if (distance < 0.1) return;
+
+                        const direction = new THREE.Vector3().subVectors(surfacePoint2, surfacePoint1).normalize();
+                        const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
+
+                        const corridorRadius = 1.2;
+                        const corridorGeometry = new THREE.CylinderGeometry(corridorRadius, corridorRadius, distance, 16);
+                        const corridor = new THREE.Mesh(corridorGeometry, corridorMaterial);
+                        corridor.position.copy(surfacePoint1).add(surfacePoint2).divideScalar(2);
+                        corridor.quaternion.copy(quaternion);
+                        connectionsGroup.add(corridor);
+                        
+                        const flangeRadius = 1.8;
+                        const flangeHeight = 0.25;
+                        const flangeGeometry = new THREE.CylinderGeometry(flangeRadius, flangeRadius, flangeHeight, 20);
+                        const flangeOffset = flangeHeight / 2;
+                        
+                        const flange1 = new THREE.Mesh(flangeGeometry, flangeMaterial);
+                        flange1.position.copy(surfacePoint1).addScaledVector(direction, -flangeOffset);
+                        flange1.quaternion.copy(quaternion);
+                        connectionsGroup.add(flange1);
+
+                        const flange2 = new THREE.Mesh(flangeGeometry, flangeMaterial);
+                        flange2.position.copy(surfacePoint2).addScaledVector(direction, flangeOffset);
+                        flange2.quaternion.copy(quaternion);
+                        connectionsGroup.add(flange2);
                     }
                 }
             });
         }
 
-        function updateStatsUI(totalModuleVolume) {
-            const totalHabitatVolume = levelConfigs.reduce((sum, config) => sum + config.volume, 0);
-            totalVolumeEl.textContent = `${totalHabitatVolume.toFixed(1)} m³`; 
-            pressurizedVolumeEl.textContent = `${(totalHabitatVolume - totalModuleVolume).toFixed(1)} m³`; 
-            modulesCountEl.textContent = internalModules.length; 
-        }
-
-        function updateSelectedModuleInfo(module) {
-            const { name, volume, requiredVolume, status } = module.userData;
-            selectedModuleNameEl.textContent = name;
-            selectedModuleVolumeEl.textContent = `${volume.toFixed(1)} m³`;
-            selectedModuleRequiredEl.textContent = `${requiredVolume.toFixed(1)} m³`;
-            if (status === 'valid') { selectedModuleStatusEl.textContent = 'OK'; selectedModuleStatusEl.className = 'font-bold text-green-400'; } 
-            else { selectedModuleStatusEl.textContent = 'UNDERSIZED'; selectedModuleStatusEl.className = 'font-bold text-red-400'; }
-        }
-        function updateAlertsUI(alerts) {
-            alertsListEl.innerHTML = '';
-            if (alerts.size === 0) { alertsListEl.innerHTML = '<li class="text-gray-500">No alerts at this time.</li>'; } 
-            else { alerts.forEach(alertText => { const li = document.createElement('li'); li.textContent = alertText; if(alertText.startsWith('Zoning')) { li.className = 'text-yellow-400'; } else { li.className = 'text-red-400'; } alertsListEl.appendChild(li); }); }
-        }
-        function animate() { requestAnimationFrame(animate); orbitControls.update(); renderer.render(scene, camera); }
+        function runAnalysis() { let totalModuleVolume = 0; const alerts = new Set(); const presentModules = new Set(internalModules.map(m => m.userData.name)); internalModules.forEach(module => { const { name, config, volume } = module.userData; const { crewSize, duration } = missionParams; let required = config.volumePerCrew * crewSize; if(config.missionDurationFactor) { required += required * (duration / 365) * config.missionDurationFactor; } module.userData.requiredVolume = required; if (volume < required) { module.material.emissive.setHex(0xff0000); module.userData.status = 'too_small'; alerts.add(`${name} is undersized. Req: ${required.toFixed(1)} m³, Current: ${volume.toFixed(1)} m³.`); } else { module.material.emissive.setHex(0x000000); module.userData.status = 'valid'; } totalModuleVolume += volume; }); for (let i = 0; i < internalModules.length; i++) { for (let j = i + 1; j < internalModules.length; j++) { const modA = internalModules[i]; const modB = internalModules[j]; if (modA.userData.level !== modB.userData.level) continue; const boxA = new THREE.Box3().setFromObject(modA, true); const boxB = new THREE.Box3().setFromObject(modB, true); if (boxA.intersectsBox(boxB)) { alerts.add(`Overlap detected between ${modA.userData.name} and ${modB.userData.name}.`); const warningsA = modA.userData.config.adjacencyWarning || []; const warningsB = modB.userData.config.adjacencyWarning || []; if (warningsA.includes(modB.userData.name)) { alerts.add(`Zoning: ${modA.userData.name} should not be adjacent to ${modB.userData.name}.`); } if (warningsB.includes(modA.userData.name)) { alerts.add(`Zoning: ${modB.userData.name} should not be adjacent to ${modA.userData.name}.`); } } } } updateStatsUI(totalModuleVolume); updateAlertsUI(alerts); updateChecklistUI(presentModules); updateOxygenAnalysisUI(missionParams.crewSize); if (transformControls.object && transformControls.object.userData.isModule) { updateSelectedModuleInfo(transformControls.object); } }
+        function updateOxygenAnalysisUI(crewSize) { const requiredOxygen = crewSize * OXYGEN_PER_PERSON_L_DAY; oxygenCrewSizeEl.textContent = crewSize; oxygenRequiredEl.textContent = `${requiredOxygen.toFixed(0)} L/day`; }
+        function updateChecklistUI(presentModules) { ESSENTIAL_MODULES.forEach(name => { const li = document.getElementById(`checklist-${name.replace(/\s+/g, '-')}`); if (li) { if (presentModules.has(name)) { li.innerHTML = `<span class="mr-2">&#10004;</span> ${name}`; li.className = 'text-green-400'; } else { li.innerHTML = `<span class="mr-2">&#10008;</span> ${name}`; li.className = 'text-red-400'; } } }); }
+        function updateStatsUI(totalModuleVolume) { const totalHabitatVolume = levelConfigs.reduce((sum, config) => sum + config.volume, 0); totalVolumeEl.textContent = `${totalHabitatVolume.toFixed(1)} m³`; pressurizedVolumeEl.textContent = `${(totalHabitatVolume - totalModuleVolume).toFixed(1)} m³`; modulesCountEl.textContent = internalModules.length; }
+        function updateSelectedModuleInfo(module) { const { name, volume, requiredVolume, status } = module.userData; selectedModuleNameEl.textContent = name; selectedModuleVolumeEl.textContent = `${volume.toFixed(1)} m³`; selectedModuleRequiredEl.textContent = `${requiredVolume.toFixed(1)} m³`; if (status === 'valid') { selectedModuleStatusEl.textContent = 'OK'; selectedModuleStatusEl.className = 'font-bold text-green-400'; } else { selectedModuleStatusEl.textContent = 'UNDERSIZED'; selectedModuleStatusEl.className = 'font-bold text-red-400'; } }
+        function updateAlertsUI(alerts) { alertsListEl.innerHTML = ''; if (alerts.size === 0) { alertsListEl.innerHTML = '<li class="text-gray-500">No alerts at this time.</li>'; } else { alerts.forEach(alertText => { const li = document.createElement('li'); li.textContent = alertText; if(alertText.startsWith('Zoning')) { li.className = 'text-yellow-400'; } else if (alertText.startsWith('Cannot') || alertText.startsWith('Maximum')) { li.className = 'text-yellow-400'; } else { li.className = 'text-red-400'; } alertsListEl.appendChild(li); }); } }
+        
         init();
     </script>
 </body>
 </html>
+
