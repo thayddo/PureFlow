@@ -6,8 +6,10 @@
     <title>Space Habitat Designer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Favicon -->
+    
+   <!-- Favicon -->
     <link rel="icon" href="../../img/favicon.ico" type="image/x-icon">
+
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
     <script type="importmap">
     {
@@ -88,6 +90,20 @@
         .module-button:active {
             cursor: grabbing;
         }
+        /* Estilos adicionais para a transição do popup */
+        .popup-overlay {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .popup-content {
+            transition: transform 0.3s ease-in-out;
+        }
+        .popup-hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .popup-hidden .popup-content {
+            transform: scale(0.95);
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white">
@@ -166,7 +182,7 @@
                 </div>
                  <div class="flex justify-center gap-2 mt-2">
                      <button id="download-btn" title="Baixa o design atual como um arquivo" class="w-full p-2 text-sm bg-green-600 hover:bg-green-700 rounded-md transition-colors">Baixar JSON</button>
-                </div>
+                 </div>
                 <input type="file" id="load-input" class="hidden" accept=".json">
             </div>
 
@@ -186,9 +202,9 @@
                       <h2 class="font-semibold text-lg">Functional Areas</h2>
                       <button id="clear-modules-btn" class="text-xs bg-red-600 hover:bg-red-700 px-2 py-1 rounded">Clear Modules</button>
                  </div>
-                  <p class="text-xs text-gray-400 mt-2">Drag a module into the habitat to place it.</p>
-                  <div id="module-palette" class="grid grid-cols-2 gap-2 pt-2">
-                  </div>
+                 <p class="text-xs text-gray-400 mt-2">Drag a module into the habitat to place it.</p>
+                 <div id="module-palette" class="grid grid-cols-2 gap-2 pt-2">
+                 </div>
             </div>
         </div>
 
@@ -200,10 +216,10 @@
                 <p id="build-mode-help" class="hidden">Build Mode: Click a level to select. Link Mode: Click two levels to connect.</p>
             </div>
              <div id="link-mode-indicator" class="hidden absolute top-2 right-2 bg-yellow-500 text-black p-2 rounded-md text-sm font-bold animate-pulse z-10">
-                  LINK MODE ACTIVE
+                 LINK MODE ACTIVE
              </div>
              <div id="removal-mode-indicator" class="hidden absolute top-12 right-2 bg-red-600 text-white p-2 rounded-md text-sm font-bold animate-pulse z-10">
-                  SELECT LEVEL TO REMOVE
+                 SELECT LEVEL TO REMOVE
              </div>
              <!-- View Toggle Buttons -->
             <div class="absolute bottom-4 right-4 flex flex-col gap-2">
@@ -288,10 +304,76 @@
         </div>
     </div>
 
+    <!-- O Popup (Modal) para o Resumo Técnico -->
+    <div id="summaryPopupOverlay" class="popup-overlay popup-hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-2000">
+        <!-- Conteúdo do Popup -->
+        <div id="summaryPopupContent" class="popup-content bg-gray-800 text-white rounded-lg shadow-2xl p-8 max-w-2xl w-full relative border border-indigo-500">
+            <!-- Botão para fechar o popup -->
+            <button id="closeSummaryPopupBtn" class="absolute top-4 right-4 text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
+            
+            <!-- Título e conteúdo do resumo -->
+            <h2 class="text-3xl font-bold mb-4 text-indigo-400">Resumo Técnico do Projeto</h2>
+            <p class="text-gray-300 mb-6">
+                Análise detalhada da configuração atual do habitat espacial, baseada nos parâmetros da missão e no design da estrutura.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                <div class="bg-gray-900 p-4 rounded-lg">
+                    <h3 class="font-semibold text-lg text-green-400 mb-2">Estatísticas Vitais</h3>
+                    <ul class="space-y-2">
+                        <li><strong>Volume Total:</strong> <span id="popup-total-volume">0 m³</span></li>
+                        <li><strong>Volume Pressurizado Livre:</strong> <span id="popup-pressurized-volume">0 m³</span></li>
+                        <li><strong>Módulos Funcionais:</strong> <span id="popup-modules-count">0</span></li>
+                    </ul>
+                </div>
+                <div class="bg-gray-900 p-4 rounded-lg">
+                    <h3 class="font-semibold text-lg text-blue-400 mb-2">Suporte de Vida (ECLSS)</h3>
+                     <ul class="space-y-2">
+                        <li><strong>Tripulação:</strong> <span id="popup-crew-size">0</span></li>
+                        <li><strong>Produção de O₂ Necessária:</strong> <span id="popup-oxygen-required">0 L/dia</span></li>
+                        <li><strong>Módulo ECLSS Presente:</strong> <span id="popup-eclss-status" class="font-bold text-red-500">Não</span></li>
+                    </ul>
+                </div>
+            </div>
+             <div class="bg-gray-900 p-4 rounded-lg mt-6">
+                <h3 class="font-semibold text-lg text-cyan-400 mb-2">Checklist de Prontidão da Missão</h3>
+                <ul id="popup-checklist-list" class="space-y-1">
+                    <!-- Checklist será populado dinamicamente -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+
     <script type="module">
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { TransformControls } from 'three/addons/controls/TransformControls.js';
+
+        // --- Popup Logic ---
+        const summaryPopupOverlay = document.getElementById('summaryPopupOverlay');
+
+        function openSummaryPopup() {
+            // Populate popup with current data
+            document.getElementById('popup-total-volume').textContent = totalVolumeEl.textContent;
+            document.getElementById('popup-pressurized-volume').textContent = pressurizedVolumeEl.textContent;
+            document.getElementById('popup-modules-count').textContent = modulesCountEl.textContent;
+            document.getElementById('popup-crew-size').textContent = oxygenCrewSizeEl.textContent;
+            document.getElementById('popup-oxygen-required').textContent = oxygenRequiredEl.textContent;
+            
+            const hasECLSS = internalModules.some(m => m.userData.name === 'ECLSS');
+            const eclssStatusEl = document.getElementById('popup-eclss-status');
+            eclssStatusEl.textContent = hasECLSS ? 'Sim' : 'Não';
+            eclssStatusEl.className = hasECLSS ? 'font-bold text-green-500' : 'font-bold text-red-500';
+
+            document.getElementById('popup-checklist-list').innerHTML = checklistListEl.innerHTML;
+
+            summaryPopupOverlay.classList.remove('popup-hidden');
+        }
+
+        function closeSummaryPopup() {
+            summaryPopupOverlay.classList.add('popup-hidden');
+        }
+
 
         // --- Configuration Data ---
         const MODULE_TYPES = {
@@ -645,7 +727,7 @@
                 }
             } else {
                  if (!transformControls.dragging) {
-                       deselectObject();
+                     deselectObject();
                  }
             }
         }
@@ -689,8 +771,17 @@
         }
         
         function setupUI() {
-            document.getElementById('back-btn').addEventListener('click', () => { window.location.href = 'home.html'; });
-            document.getElementById('summary-btn').addEventListener('click', () => { window.location.href = 'resumo_tecnico.html'; });
+            document.getElementById('back-btn').addEventListener('click', () => { window.location.href = '../forms/briefing.html'; });
+            
+            // POPUP EVENT LISTENERS
+            document.getElementById('summary-btn').addEventListener('click', openSummaryPopup);
+            document.getElementById('closeSummaryPopupBtn').addEventListener('click', closeSummaryPopup);
+            summaryPopupOverlay.addEventListener('click', function(event) {
+                if (event.target === summaryPopupOverlay) {
+                    closeSummaryPopup();
+                }
+            });
+
             document.querySelectorAll('input[name="environment"]').forEach(radio => radio.addEventListener('change', (e) => { missionParams.environment = e.target.value; updateHabitatShapeOptions(); updateSceneEnvironment(); createHabitatShells(); }));
             document.querySelectorAll('input[name="design-mode"]').forEach(radio => radio.addEventListener('change', (e) => { 
                 designState.designMode = e.target.value; 
@@ -925,8 +1016,8 @@
                         config.group.remove(child);
                     });
                  } else {
-                     config.group = new THREE.Group();
-                     scene.add(config.group);
+                      config.group = new THREE.Group();
+                      scene.add(config.group);
                  }
                  config.group.userData.levelId = config.id;
 
@@ -979,7 +1070,7 @@
                 const wireframe = new THREE.LineSegments(wireframeGeo, wireframeMat);
                 config.group.add(wireframe);
                 config.group.userData.wireframeMesh = wireframe;
-                 
+                
                  if (shape === 'truss') {
                     const trussMaterial = new THREE.MeshStandardMaterial({ color: 0x9ca3af, metalness: 0.8, roughness: 0.4 });
                     const strutGeo = new THREE.CylinderGeometry(0.2, 0.2, height, 8);
@@ -994,12 +1085,12 @@
                  }
                 
                  if (!oldPosition && !isInitialLoad) {
-                     config.group.position.set(initialXOffset, levelHeight / 2, 0);
-                     initialXOffset += 20;
+                      config.group.position.set(initialXOffset, levelHeight / 2, 0);
+                      initialXOffset += 20;
                  } else if (oldPosition) {
-                     config.group.position.copy(oldPosition);
-                     config.group.rotation.copy(oldRotation);
-                     config.group.scale.copy(oldScale);
+                      config.group.position.copy(oldPosition);
+                      config.group.rotation.copy(oldRotation);
+                      config.group.scale.copy(oldScale);
                  }
             });
             
@@ -1512,6 +1603,3 @@
     </script>
 </body>
 </html>
-" and would like to change it.
-queri que a pagina home.html fosse mais interativa, com um globo terrestre no fundo e um botao de começar no centro
-
