@@ -67,6 +67,18 @@
             background-color: #4f46e5;
             color: white;
         }
+        /* EFEITO DE ALERTA PARA O PAINEL DE CLIMA ESPACIAL */
+        .alert-pulse {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white">
@@ -90,13 +102,14 @@
             <div class="space-y-4 bg-gray-900 p-4 rounded-lg">
                 <h2 class="font-semibold text-lg border-b border-gray-700 pb-2">Mission Environment</h2>
                 <div class="flex justify-around">
+                    <!-- AJUSTE 1: Mudei os valores para 'Moon' e 'Mars' para corresponder à API -->
                     <div>
-                        <input type="radio" id="env-orbit" name="environment" value="orbit" checked>
-                        <label for="env-orbit" class="text-sm ml-1">Orbit / Transit</label>
+                        <input type="radio" id="env-moon" name="environment" value="Moon">
+                        <label for="env-moon" class="text-sm ml-1">Lua</label>
                     </div>
                     <div>
-                        <input type="radio" id="env-surface" name="environment" value="surface">
-                        <label for="env-surface" class="text-sm ml-1">Planetary Surface</label>
+                        <input type="radio" id="env-mars" name="environment" value="Mars" checked>
+                        <label for="env-mars" class="text-sm ml-1">Marte</label>
                     </div>
                 </div>
             </div>
@@ -151,12 +164,10 @@
                 <div>
                     <label for="habitat-shape" class="text-sm">Shape:</label>
                     <select id="habitat-shape" class="w-full mt-1 bg-gray-700 border border-gray-600 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <!-- Options will be populated by JS -->
-                    </select>
+                        </select>
                 </div>
                 <div id="dimension-controls" class="space-y-4">
-                    <!-- Dynamic dimension controls will be inserted here -->
-                </div>
+                    </div>
             </div>
 
             <!-- Functional Areas -->
@@ -165,16 +176,14 @@
                     <h2 class="font-semibold text-lg">Functional Areas</h2>
                     <button id="clear-modules-btn" class="text-xs bg-red-600 hover:bg-red-700 px-2 py-1 rounded">Clear Modules</button>
                  </div>
-                 <div id="module-palette" class="grid grid-cols-2 gap-2">
-                    <!-- Module buttons will be added here -->
-                 </div>
+                 <div id="module-palette" class="grid grid-cols-2 gap-2 pt-2">
+                    </div>
             </div>
         </div>
 
         <!-- Center Panel: 3D Canvas -->
         <div id="canvas-container" class="flex-grow h-full relative">
-            <!-- Canvas will be inserted here -->
-            <div class="absolute top-2 left-2 bg-gray-800 bg-opacity-70 p-2 rounded-md text-xs">
+            <div class="absolute top-2 left-2 bg-gray-800 bg-opacity-70 p-2 rounded-md text-xs z-10">
                 <p>Controls: Left Click + Drag to Rotate | Right Click + Drag to Pan | Scroll to Zoom</p>
                 <p>W: Move | S: Scale | E: Rotate | Q: Delete | ESC: Deselect | Build Mode: Click shell to move it</p>
             </div>
@@ -185,6 +194,17 @@
             <div>
                 <h2 class="text-xl font-bold text-indigo-400">System Analysis</h2>
                 <p class="text-sm text-gray-400">Real-time design feedback.</p>
+            </div>
+
+            <!-- AJUSTE 2: Adicionei o novo painel de Clima Espacial aqui -->
+            <div id="space-weather-panel" class="bg-gray-900 p-4 rounded-lg border-2 border-gray-700 transition-all duration-300">
+                <h3 class="font-semibold text-lg border-b border-gray-700 pb-2 text-red-400">Space Weather Intel</h3>
+                <div class="text-sm space-y-2 mt-2">
+                    <p>Status: <span id="weather-status" class="font-mono font-bold text-green-400">Verificando...</span></p>
+                    <p id="weather-eta-container" class="hidden">Impacto em: <span id="weather-eta" class="font-mono text-white">N/A</span></p>
+                    <p>Fonte: <span id="weather-source" class="font-mono text-white">N/A</span></p>
+                    <p id="weather-summary" class="text-gray-300 italic mt-2">Aguardando dados da NASA Deep Space Network...</p>
+                </div>
             </div>
 
             <!-- Habitat Stats -->
@@ -229,8 +249,7 @@
             <div id="mission-checklist" class="bg-gray-900 p-4 rounded-lg">
                 <h3 class="font-semibold text-lg border-b border-gray-700 pb-2 text-cyan-400">Readiness Checklist</h3>
                 <ul id="checklist-list" class="text-sm space-y-2 mt-2">
-                    <!-- Checklist items will be populated by JS -->
-                </ul>
+                    </ul>
             </div>
             
              <!-- Alerts -->
@@ -247,6 +266,75 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { TransformControls } from 'three/addons/controls/TransformControls.js';
+        
+        // AJUSTE 3: O módulo da API está agora integrado diretamente aqui para evitar erros de importação local.
+        const SpaceDataHub = {
+            apiKey: '7GcXfHCbgKecnJw1e7FkyWuUAZu54s23CT8HPUXL',
+            async _fetchDonkiData(endpoint, params = {}) {
+                const startDate = params.startDate || new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                const endDate = params.endDate || new Date().toISOString().split('T')[0];
+                const queryParams = new URLSearchParams({ startDate, endDate, api_key: this.apiKey, ...params });
+                const apiUrl = `https://api.nasa.gov/DONKI/${endpoint}?${queryParams.toString()}`;
+                try {
+                    const response = await fetch(apiUrl);
+                    if (!response.ok) {
+                        console.error(`Erro de rede para o endpoint ${endpoint}: ${response.statusText}`);
+                        return null;
+                    }
+                    return await response.json();
+                } catch (error) {
+                    console.error(`Falha ao buscar dados do endpoint ${endpoint}:`, error);
+                    return null;
+                }
+            },
+            async getImpactAnalysis(targetPlanet) {
+                const analysisData = await this._fetchDonkiData('CMEAnalysis', { mostAccurateOnly: true });
+                if (!analysisData) return { isImpact: false, summary: "Erro ao conectar com os modelos de previsão da NASA." };
+                if (analysisData.length === 0) return { isImpact: false, summary: "Nenhum evento solar significativo analisado recentemente." };
+                let earliestImpact = null;
+                for (const event of analysisData) {
+                    if (event.cmeAnalyses && event.cmeAnalyses[0]?.impacts) {
+                        for (const impact of event.cmeAnalyses[0].impacts) {
+                            const impactLocation = (targetPlanet === 'Moon') ? 'L1' : 'Mars';
+                            if (impact.location === impactLocation && impact.isGltf) {
+                                const arrivalTime = new Date(impact.estimatedTimeOfArrival);
+                                const timeToImpactMs = arrivalTime.getTime() - new Date().getTime();
+                                if (timeToImpactMs > 0 && (earliestImpact === null || arrivalTime < earliestImpact.arrivalTime)) {
+                                    const timeToImpactHours = Math.round(timeToImpactMs / (1000 * 60 * 60));
+                                    earliestImpact = {
+                                        isImpact: true, analysisType: 'NASA_MODEL', arrivalTime, timeToImpactHours,
+                                        summary: `ALERTA (Modelo NASA): Impacto previsto para ${targetPlanet} em ${timeToImpactHours} horas.`,
+                                        speed: event.cmeAnalyses[0].speed, simulationLink: event.link, eventData: event
+                                    };
+                                }
+                            }
+                        }
+                    }
+                }
+                if (earliestImpact) return earliestImpact;
+                for (const event of analysisData) {
+                    const analysis = event.cmeAnalyses ? event.cmeAnalyses[0] : null;
+                    const note = event.note ? event.note.toLowerCase() : '';
+                    if (analysis && analysis.speed && note.includes('halo cme')) {
+                        const speedKms = analysis.speed;
+                        const distanceKm = (targetPlanet === 'Moon') ? 150000000 : 225000000;
+                        const travelTimeSeconds = distanceKm / speedKms;
+                        const arrivalTime = new Date(new Date(event.startTime).getTime() + travelTimeSeconds * 1000);
+                        const timeToImpactMs = arrivalTime.getTime() - new Date().getTime();
+                        if (timeToImpactMs > 0 && (earliestImpact === null || arrivalTime < earliestImpact.arrivalTime)) {
+                            const timeToImpactHours = Math.round(timeToImpactMs / (1000 * 60 * 60));
+                            earliestImpact = {
+                                isImpact: true, analysisType: 'ANALYTICAL_ESTIMATE', arrivalTime, timeToImpactHours,
+                                summary: `ALERTA (Estimativa Analítica): Possível impacto de Halo CME em ${targetPlanet} em ~${timeToImpactHours} horas.`,
+                                speed: speedKms, simulationLink: event.link, eventData: event
+                            };
+                        }
+                    }
+                }
+                if (earliestImpact) return earliestImpact;
+                return { isImpact: false, summary: "Nenhum impacto previsto para o seu alvo." };
+            }
+        };
 
         // --- Configuration Data ---
         const MODULE_TYPES = {
@@ -262,17 +350,35 @@
             'Laboratory': { color: 0x059669, volumePerCrew: 12, adjacencyWarning: [] },
             'Greenhouse': { color: 0x16a34a, volumePerCrew: 8, adjacencyWarning: ['Waste Management'] },
             'Airlock': { color: 0x9ca3af, volumePerCrew: 2, adjacencyWarning: [] },
+            // AJUSTE 4: Adicionei o módulo 'Storm Shelter' para reagir à API
+            'Storm Shelter': { color: 0xfacc15, volumePerCrew: 3, adjacencyWarning: [] },
+        };
+
+        const MODULE_ICONS = {
+            'Quarters': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" /></svg>`,
+            'Hygiene': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-12v4m-2-2h4m6 4v4m-2-2h4M6 21a2 2 0 002-2h8a2 2 0 002-2V7a2 2 0 00-2-2h-4M6 21V7a2 2 0 012-2h4" /></svg>`,
+            'Galley': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7.014A8.003 8.003 0 0112 2a8.003 8.003 0 016.014 2.986C20.5 5 21 8 21 10c2 1 2.657 1.343 2.657 2.657a8 8 0 01-1.343 5.657z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>`,
+            'Exercise': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>`,
+            'Recreation': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
+            'Storage': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4M4 7s0 0 0 0m16 0s0 0 0 0M12 11a4 4 0 100-8 4 4 0 000 8z" /></svg>`,
+            'Workshop': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>`,
+            'ECLSS': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M5 5a7 7 0 0110.606.394M20 20v-5h-5m-1-1a7 7 0 01-10.606-.394" /></svg>`,
+            'Waste Management': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`,
+            'Laboratory': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547a2 2 0 00-.547 1.806l.477 2.387a6 6 0 00.517 3.86l.158.318a6 6 0 003.86.517l2.387.477a2 2 0 001.806-.547a2 2 0 00.547-1.806l-.477-2.387a6 6 0 00-.517-3.86l-.158-.318z" /><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 10.25l1.5 1.5m0 0l-1.5 1.5m1.5-1.5h-3m-6 0l-1.5-1.5m0 0l1.5-1.5m-1.5 1.5h3" /></svg>`,
+            'Greenhouse': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.121 15.879A3 3 0 0112.025 18a3 3 0 01-2.096-2.121m0 0A3 3 0 0012.025 12a3 3 0 002.096-2.121m-4.192 0A3 3 0 0112.025 6a3 3 0 012.096 2.121m0 0A3 3 0 0016.12 12a3 3 0 00-2.096 2.121" /></svg>`,
+            'Airlock': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>`,
+            'Storm Shelter': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 1.944A11.951 11.951 0 001 10c0 4.393 2.343 8.215 5.872 10.161A.5.5 0 007 19.5v-2.01a.5.5 0 00-.23-.42c-2.03-1.2-3.27-3.419-3.27-5.91a7.5 7.5 0 0112.13-5.932.5.5 0 00.65-.65A11.92 11.92 0 0010 1.944zM12.5 7.5a.5.5 0 00-1 0v2.768l-2.096 2.096a.5.5 0 00.708.707L12.5 13.207V7.5zM10 6a4 4 0 100 8 4 4 0 000-8z" clip-rule="evenodd" /></svg>`,
+            'default': `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>`
         };
         
         const HABITAT_SHAPES = {
-            orbit: { 'Cylindrical Module': 'cylinder', 'Inflatable Module': 'inflatable', 'Rotational Station (Torus)': 'torus' },
-            surface: { 'Cylindrical Module': 'cylinder', 'Inflatable Module': 'inflatable', 'Planetary Base (Dome)': 'dome', 'Connector Module': 'connector' }
+            Moon: { 'Cylindrical Module': 'cylinder', 'Inflatable Module': 'inflatable', 'Planetary Base (Dome)': 'dome', 'Connector Module': 'connector' },
+            Mars: { 'Cylindrical Module': 'cylinder', 'Inflatable Module': 'inflatable', 'Planetary Base (Dome)': 'dome', 'Connector Module': 'connector' }
         };
 
         const SHAPE_RATIONALES = {
             'cylinder': 'Excellent for containing internal pressure. Maximizes usable volume within rocket fairing limitations, making it a common choice for orbital modules.',
             'inflatable': 'Provides a massive pressurized volume for a very small launch mass and size. Flexible fabric becomes rigid when inflated, ideal for large living areas on long missions.',
-            'torus': 'Designed to generate artificial gravity through rotation (centripetal force). This is crucial for mitigating the long-term negative health effects of microgravity on the crew.',
             'dome': 'Geodesic domes are incredibly strong for their weight, distributing stress efficiently. They are ideal for planetary surfaces, resisting gravity and atmospheric pressure while providing a large, open interior space.',
             'connector': 'While less efficient for pressure, its rectangular shape is perfect for modularity. It allows easy connection between other modules to build complex surface bases with defined interior spaces.'
         };
@@ -286,6 +392,7 @@
         let scene, camera, renderer, orbitControls, transformControls, raycaster;
         const pointer = new THREE.Vector2();
         let groundPlane, surfaceFeatures;
+        let marsGroundTexture, moonGroundTexture;
         const internalModules = [];
         const clippingPlanes = [ new THREE.Plane(new THREE.Vector3(0, -1, 0), 0) ];
 
@@ -311,9 +418,16 @@
         const engineeringRationaleEl = document.getElementById('engineering-rationale');
         const rationaleShapeEl = document.getElementById('rationale-shape');
         const rationaleTextEl = document.getElementById('rationale-text');
+        
+        const weatherPanel = document.getElementById('space-weather-panel');
+        const weatherStatusEl = document.getElementById('weather-status');
+        const weatherEtaContainer = document.getElementById('weather-eta-container');
+        const weatherEtaEl = document.getElementById('weather-eta');
+        const weatherSourceEl = document.getElementById('weather-source');
+        const weatherSummaryEl = document.getElementById('weather-summary');
 
         // --- State ---
-        let missionParams = { crewSize: 4, duration: 365, environment: 'orbit' };
+        let missionParams = { crewSize: 4, duration: 365, environment: 'Mars' };
         let levelConfigs = [
             { id: 0, shape: 'cylinder', radius: 4, length: 8, width: 8, height: 4, torusRadius: 8, tubeRadius: 2, volume: 0, group: null },
             { id: 1, shape: 'cylinder', radius: 4, length: 8, width: 8, height: 4, torusRadius: 8, tubeRadius: 2, volume: 0, group: null },
@@ -322,6 +436,35 @@
             { id: 4, shape: 'cylinder', radius: 4, length: 8, width: 8, height: 4, torusRadius: 8, tubeRadius: 2, volume: 0, group: null }
         ];
         let designState = { activeLevel: 0, snapGridSize: 0.5, designMode: 'layout' };
+        let isSolarStormActive = false;
+
+        // --- LÓGICA DO CLIMA ESPACIAL ---
+        async function checkSpaceWeather() {
+            const planet = missionParams.environment;
+            const analysis = await SpaceDataHub.getImpactAnalysis(planet);
+
+            isSolarStormActive = analysis.isImpact;
+
+            if (analysis.isImpact) {
+                weatherPanel.classList.remove('border-gray-700');
+                weatherPanel.classList.add('border-red-500', 'alert-pulse');
+                weatherStatusEl.textContent = 'IMPACTO PREVISTO';
+                weatherStatusEl.className = 'font-mono font-bold text-red-400';
+                weatherEtaContainer.classList.remove('hidden');
+                weatherEtaEl.textContent = `${analysis.timeToImpactHours} horas`;
+                weatherSourceEl.textContent = analysis.analysisType;
+                weatherSummaryEl.textContent = analysis.summary;
+            } else {
+                weatherPanel.classList.remove('border-red-500', 'alert-pulse');
+                weatherPanel.classList.add('border-gray-700');
+                weatherStatusEl.textContent = 'CALMO';
+                weatherStatusEl.className = 'font-mono font-bold text-green-400';
+                weatherEtaContainer.classList.add('hidden');
+                weatherSourceEl.textContent = 'N/A';
+                weatherSummaryEl.textContent = analysis.summary;
+            }
+            runAnalysis(); 
+        }
 
         // --- Initialization ---
         function init() {
@@ -370,6 +513,9 @@
             createHabitatShells();
             runAnalysis();
             animate();
+            
+            checkSpaceWeather();
+            setInterval(checkSpaceWeather, 900000); // 15 minutes
 
             window.addEventListener('resize', onWindowResize);
             window.addEventListener('keydown', onKeyDown);
@@ -381,22 +527,20 @@
                 document.getElementById('loading-overlay').style.display = 'none';
                 document.getElementById('app-container').style.opacity = 1;
             });
-            const cubeTextureLoader = new THREE.CubeTextureLoader(loadingManager);
             const textureLoader = new THREE.TextureLoader(loadingManager);
 
-            const skyboxTexture = cubeTextureLoader.load([
-                'https://threejs.org/examples/textures/cube/MilkyWay/dark-s_px.jpg', 'https://threejs.org/examples/textures/cube/MilkyWay/dark-s_nx.jpg',
-                'https://threejs.org/examples/textures/cube/MilkyWay/dark-s_py.jpg', 'https://threejs.org/examples/textures/cube/MilkyWay/dark-s_ny.jpg',
-                'https://threejs.org/examples/textures/cube/MilkyWay/dark-s_pz.jpg', 'https://threejs.org/examples/textures/cube/MilkyWay/dark-s_nz.jpg'
-            ]);
-            scene.userData.skyboxTexture = skyboxTexture;
-            
-            const groundTexture = textureLoader.load('https://threejs.org/examples/textures/planets/mars_1k_color.jpg', (texture) => {
+            marsGroundTexture = textureLoader.load('https://threejs.org/examples/textures/planets/mars_1k_color.jpg', (texture) => {
                 texture.wrapS = THREE.RepeatWrapping;
                 texture.wrapT = THREE.RepeatWrapping;
                 texture.repeat.set(100, 100);
             });
-            const groundMat = new THREE.MeshStandardMaterial({ map: groundTexture, side: THREE.DoubleSide });
+            moonGroundTexture = textureLoader.load('https://threejs.org/examples/textures/planets/moon_1024.jpg', (texture) => {
+                texture.wrapS = THREE.RepeatWrapping;
+                texture.wrapT = THREE.RepeatWrapping;
+                texture.repeat.set(100, 100);
+            });
+            
+            const groundMat = new THREE.MeshStandardMaterial({ map: marsGroundTexture, side: THREE.DoubleSide });
             const groundGeo = new THREE.PlaneGeometry(500, 500);
             groundPlane = new THREE.Mesh(groundGeo, groundMat);
             groundPlane.rotation.x = -Math.PI / 2;
@@ -450,7 +594,13 @@
         }
         
         function setupUI() {
-            document.querySelectorAll('input[name="environment"]').forEach(radio => radio.addEventListener('change', (e) => { missionParams.environment = e.target.value; updateHabitatShapeOptions(); updateSceneEnvironment(); createHabitatShells(); }));
+            document.querySelectorAll('input[name="environment"]').forEach(radio => radio.addEventListener('change', (e) => { 
+                missionParams.environment = e.target.value; 
+                updateHabitatShapeOptions(); 
+                updateSceneEnvironment(); 
+                createHabitatShells(); 
+                checkSpaceWeather();
+            }));
             document.querySelectorAll('input[name="design-mode"]').forEach(radio => radio.addEventListener('change', (e) => { designState.designMode = e.target.value; deselectObject(); }));
             crewSizeSlider.addEventListener('input', e => { missionParams.crewSize = parseInt(e.target.value); crewSizeValue.textContent = missionParams.crewSize; runAnalysis(); });
             missionDurationSlider.addEventListener('input', e => { missionParams.duration = parseInt(e.target.value); missionDurationValue.textContent = missionParams.duration; runAnalysis(); });
@@ -472,10 +622,22 @@
             Object.keys(MODULE_TYPES).forEach(name => {
                 const config = MODULE_TYPES[name];
                 const button = document.createElement('button');
-                button.textContent = name;
+                
+                const iconSVG = MODULE_ICONS[name] || MODULE_ICONS['default'];
+                const hexColor = `#${new THREE.Color(config.color).getHexString()}`;
+
                 button.title = `${name} - Vol/Crew: ${config.volumePerCrew} m³`;
-                button.className = 'w-full text-sm p-2 rounded-md transition-all duration-200 hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-400';
-                button.style.backgroundColor = `#${new THREE.Color(config.color).getHexString()}`;
+                button.className = 'flex flex-col items-center justify-center p-2 bg-gray-700 rounded-lg text-xs font-medium text-gray-200 transition-all duration-200 transform hover:scale-105 hover:shadow-lg border-2 border-transparent';
+                
+                button.style.setProperty('--module-color', hexColor);
+                button.onmouseenter = () => button.style.borderColor = button.style.getPropertyValue('--module-color');
+                button.onmouseleave = () => button.style.borderColor = 'transparent';
+
+                button.innerHTML = `
+                    ${iconSVG}
+                    <span>${name}</span>
+                `;
+
                 button.onclick = () => addFunctionalModule(name, config);
                 modulePalette.appendChild(button);
             });
@@ -543,13 +705,6 @@
                      container.appendChild(l.wrapper);
                      l.slider.addEventListener('input', e => { activeConfig.length = parseFloat(e.target.value); document.getElementById('length-value').textContent = activeConfig.length.toFixed(1); createHabitatShells(); });
                 }
-            } else if (shape === 'torus') {
-                const tr = createSlider('torusRadius', 'Torus Radius (m)', 4, 20, activeConfig.torusRadius, 0.1);
-                container.appendChild(tr.wrapper);
-                tr.slider.addEventListener('input', e => { activeConfig.torusRadius = parseFloat(e.target.value); document.getElementById('torusRadius-value').textContent = activeConfig.torusRadius.toFixed(1); createHabitatShells(); });
-                const tur = createSlider('tubeRadius', 'Tube Radius (m)', 1, 5, activeConfig.tubeRadius, 0.1);
-                container.appendChild(tur.wrapper);
-                tur.slider.addEventListener('input', e => { activeConfig.tubeRadius = parseFloat(e.target.value); document.getElementById('tubeRadius-value').textContent = activeConfig.tubeRadius.toFixed(1); createHabitatShells(); });
             } else if (shape === 'connector') {
                 const w = createSlider('width', 'Width (m)', 2, 20, activeConfig.width, 0.1);
                 container.appendChild(w.wrapper);
@@ -564,19 +719,21 @@
         }
         
         function updateSceneEnvironment() {
-            if (missionParams.environment === 'orbit') {
-                scene.background = scene.userData.skyboxTexture || new THREE.Color(0x111827);
-                scene.fog = null;
-                if(scene.children.includes(groundPlane)) scene.remove(groundPlane);
-                if(scene.children.includes(surfaceFeatures)) scene.remove(surfaceFeatures);
-                orbitControls.maxPolarAngle = Math.PI;
-            } else { // surface
-                scene.background = new THREE.Color(0x000000);
+            if (missionParams.environment === 'Mars') {
                 scene.fog = new THREE.FogExp2(0x935837, 0.005);
-                if(!scene.children.includes(groundPlane)) scene.add(groundPlane);
-                if(!scene.children.includes(surfaceFeatures)) scene.add(surfaceFeatures);
-                orbitControls.maxPolarAngle = Math.PI / 2 - 0.05;
+                groundPlane.material.map = marsGroundTexture;
+                surfaceFeatures.children.forEach(c => c.material.color.setHex(0x935837));
+            } else { // Moon
+                scene.fog = new THREE.FogExp2(0x000000, 0.008);
+                groundPlane.material.map = moonGroundTexture;
+                surfaceFeatures.children.forEach(c => c.material.color.setHex(0x888888));
             }
+
+            if(!scene.children.includes(groundPlane)) scene.add(groundPlane);
+            if(!scene.children.includes(surfaceFeatures)) scene.add(surfaceFeatures);
+            orbitControls.maxPolarAngle = Math.PI / 2 - 0.05;
+            
+            scene.background = new THREE.Color(0x000000);
         }
 
         function createHabitatShells() {
@@ -595,12 +752,11 @@
 
                 let geometry, volume = 0, levelHeight = 0;
 
-                const { shape, radius, length, width, height, torusRadius, tubeRadius } = config;
+                const { shape, radius, length, width, height } = config;
                 switch (shape) {
                     case 'cylinder': geometry = new THREE.CylinderGeometry(radius, radius, length, 64); volume = Math.PI * radius * radius * length; levelHeight = length; break;
                     case 'inflatable': geometry = new THREE.CapsuleGeometry(radius, length - (radius * 2), 32, 64); volume = (Math.PI * radius * radius * (length - (radius*2))) + ((4/3) * Math.PI * Math.pow(radius, 3)); levelHeight = length; break;
                     case 'dome': geometry = new THREE.SphereGeometry(radius, 64, 32, 0, Math.PI * 2, 0, Math.PI / 2); volume = (2/3) * Math.PI * Math.pow(radius, 3); levelHeight = radius; break;
-                    case 'torus': geometry = new THREE.TorusGeometry(torusRadius, tubeRadius, 32, 100); volume = (Math.PI * tubeRadius * tubeRadius) * (2 * Math.PI * torusRadius); levelHeight = tubeRadius * 2; break;
                     case 'connector': geometry = new THREE.BoxGeometry(width, height, length); volume = width * height * length; levelHeight = height; break;
                     default: geometry = new THREE.BoxGeometry(1,1,1); levelHeight = 1;
                 }
@@ -621,9 +777,6 @@
                 
                 if (isFirstCreation) {
                     config.group.position.set(initialXOffset, levelHeight / 2, 0);
-                     if (missionParams.environment === 'surface') {
-                        config.group.position.y = levelHeight / 2;
-                    }
                     initialXOffset += 15;
                 } else if (oldPosition) {
                     config.group.position.copy(oldPosition);
@@ -751,10 +904,16 @@
             }
         }
         
+        // AJUSTE 5: A função runAnalysis é a peça central que conecta a API ao resto do seu código.
         function runAnalysis() {
             let totalModuleVolume = 0;
             const alerts = new Set();
             const presentModules = new Set(internalModules.map(m => m.userData.name));
+
+            // ESTA É A LIGAÇÃO: Se a API disse que há uma tempestade, esta lógica verifica se o seu design está preparado.
+            if (isSolarStormActive && !presentModules.has('Storm Shelter')) {
+                alerts.add('CRITICAL: Solar storm incoming! No designated radiation shelter found.');
+            }
 
             internalModules.forEach(module => {
                 const { name, config, volume } = module.userData;
@@ -777,10 +936,13 @@
                     
                     if (boxA.intersectsBox(boxB)) {
                         alerts.add(`Overlap detected between ${modA.userData.name} and ${modB.userData.name}.`);
+                    }
+                    const expandedBoxA = boxA.clone().expandByScalar(0.1);
+                    if (expandedBoxA.intersectsBox(boxB)) {
                         const warningsA = modA.userData.config.adjacencyWarning || [];
                         const warningsB = modB.userData.config.adjacencyWarning || [];
-                        if (warningsA.includes(modB.userData.name)) { alerts.add(`Zoning: ${modA.userData.name} should not be adjacent to ${modB.userData.name}.`); }
-                        if (warningsB.includes(modA.userData.name)) { alerts.add(`Zoning: ${modB.userData.name} should not be adjacent to ${modA.userData.name}.`); }
+                        if (warningsA.includes(modB.userData.name)) { alerts.add(`Zoning: ${modA.userData.name} should ideally not be next to ${modB.userData.name}.`); }
+                        if (warningsB.includes(modA.userData.name)) { alerts.add(`Zoning: ${modB.userData.name} should ideally not be next to ${modA.userData.name}.`); }
                     }
                 }
             }
@@ -830,7 +992,7 @@
         function updateAlertsUI(alerts) {
             alertsListEl.innerHTML = '';
             if (alerts.size === 0) { alertsListEl.innerHTML = '<li class="text-gray-500">No alerts at this time.</li>'; } 
-            else { alerts.forEach(alertText => { const li = document.createElement('li'); li.textContent = alertText; if(alertText.startsWith('Zoning')) { li.className = 'text-yellow-400'; } else { li.className = 'text-red-400'; } alertsListEl.appendChild(li); }); }
+            else { alerts.forEach(alertText => { const li = document.createElement('li'); li.textContent = alertText; if(alertText.startsWith('Zoning')) { li.className = 'text-yellow-400'; } else { li.className = 'text-red-400'; } if(alertText.startsWith('CRITICAL')) { li.classList.add('font-bold'); } alertsListEl.appendChild(li); }); }
         }
         function animate() { requestAnimationFrame(animate); orbitControls.update(); renderer.render(scene, camera); }
         init();
