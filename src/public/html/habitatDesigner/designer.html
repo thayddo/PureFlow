@@ -6,6 +6,10 @@
     <title>Space Habitat Designer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+   <!-- Favicon -->
+    <link rel="icon" href="../../img/favicon.ico" type="image/x-icon">
+
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
     <script type="importmap">
     {
@@ -767,7 +771,7 @@
         }
         
         function setupUI() {
-            document.getElementById('back-btn').addEventListener('click', () => { window.location.href = 'home.html'; });
+            document.getElementById('back-btn').addEventListener('click', () => { window.location.href = '../forms/briefing.html'; });
             
             // POPUP EVENT LISTENERS
             document.getElementById('summary-btn').addEventListener('click', openSummaryPopup);
